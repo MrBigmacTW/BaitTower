@@ -12,8 +12,8 @@ import { Shop } from './components/Shop';
 import { RulesPage } from './components/RulesPage';
 import { RouletteWheel } from './components/RouletteWheel';
 import { useGameState } from './hooks/useGameState';
-import { COLORS, ENTRY_FEE, MAX_FLOOR, ZONE_COLORS } from './utils/constants';
-import { getCoinHint } from './utils/gameLogic';
+import { COLORS, ENTRY_FEE, MAX_FLOOR, ZONE_COLORS, ZONE_FEES } from './utils/constants';
+import { getCoinHint, getZoneFee, getMinGuarantee, getZonesEntered } from './utils/gameLogic';
 import type { TutorialStep } from './types/game';
 
 function App() {
@@ -22,7 +22,7 @@ function App() {
     completeTutorial, resetTutorial,
     forceFloor, forceDeath, forceSummit, forceEvent,
     continueAfterZoneTransition, completeRoulette, goHome,
-    completeAnimation,
+    completeAnimation, payZoneFee, declineZoneFee,
   } = useGameState();
 
   const [tutorialStep, setTutorialStep] = useState<TutorialStep>(
@@ -203,6 +203,86 @@ function App() {
       {debugPanel}
     </>
   );
+
+  // Zone gate (pay fee to enter)
+  if (state.phase === 'zone_gate') {
+    const zoneKey = state.zoneTransitionName === '迷霧森林' ? 'mist'
+      : state.zoneTransitionName === '熔岩地帶' ? 'lava'
+      : state.zoneTransitionName === '龍域' ? 'dragon' : 'sky';
+    const zoneColor = ZONE_COLORS[zoneKey] || COLORS.gold;
+    const fee = ZONE_FEES[zoneKey] || 69;
+    const zonesEntered = getZonesEntered(state.currentFloor);
+    const minGuarantee = getMinGuarantee(state.currentFloor);
+    const prevBonus = Math.floor(state.dogTags * 0.15);
+
+    return (
+      <div className="zone-transition" style={{
+        minHeight: '100vh', background: COLORS.bg, textAlign: 'center',
+        animation: 'fadeIn 0.5s ease-in', padding: '2rem',
+      }}>
+        <div className="icon-frame" style={{
+          width: 100, height: 100, fontSize: '3rem',
+          borderColor: `${zoneColor}50`,
+          boxShadow: `0 0 30px ${zoneColor}20`,
+          marginBottom: '1.5rem',
+        }}>
+          ⚔️
+        </div>
+
+        <h1 style={{ color: zoneColor, fontSize: '1.8rem', marginBottom: '0.5rem', letterSpacing: '3px', textShadow: `0 0 20px ${zoneColor}40` }}>
+          {state.zoneTransitionName}
+        </h1>
+        <p style={{ color: COLORS.muted, fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+          {state.zoneTransitionDesc}
+        </p>
+
+        {state.zoneTransitionWarning && (
+          <p style={{
+            color: COLORS.orange, fontSize: '0.85rem', maxWidth: '320px', margin: '0 auto 1rem',
+            background: `${COLORS.orange}15`, borderRadius: '8px', padding: '8px 16px',
+          }}>
+            {state.zoneTransitionWarning}
+          </p>
+        )}
+
+        <div className="glass-card" style={{ padding: '1.5rem', maxWidth: '320px', margin: '0 auto 1.5rem', textAlign: 'left' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <span style={{ color: COLORS.muted }}>區域入場費</span>
+            <span style={{ color: COLORS.gold, fontWeight: 'bold' }}>{fee} 元</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <span style={{ color: COLORS.muted }}>目前塔幣</span>
+            <span style={{ color: COLORS.gold }}>{state.dogTags} 🪙</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <span style={{ color: COLORS.muted }}>已投入</span>
+            <span style={{ color: COLORS.text }}>{state.totalSpent} 元</span>
+          </div>
+          <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.08)', margin: '10px 0' }} />
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ color: COLORS.positive, fontWeight: 'bold' }}>保底獎勵</span>
+            <span style={{ color: COLORS.positive, fontWeight: 'bold' }}>至少 {minGuarantee} 🪙</span>
+          </div>
+          <p style={{ color: COLORS.muted, fontSize: '0.7rem', marginTop: '6px' }}>
+            進入此區域後，即使死亡也保證獲得至少 {minGuarantee} 塔幣
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '280px', margin: '0 auto' }}>
+          <button className="btn-primary" onClick={payZoneFee} style={{ fontSize: '1.1rem' }}>
+            💰 付費進入（{fee} 元）
+          </button>
+          <button className="btn-secondary" onClick={declineZoneFee}>
+            🏠 帶著 {state.dogTags} 塔幣離開（+15% 獎勵）
+          </button>
+          <p style={{ color: COLORS.muted, fontSize: '0.75rem' }}>
+            現在離開可獲得 {state.dogTags + prevBonus} 塔幣
+          </p>
+        </div>
+        {showDebug && debugPanel}
+      </div>
+    );
+  }
 
   // Zone transition
   if (state.phase === 'zone_transition') {

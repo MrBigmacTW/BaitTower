@@ -38,7 +38,7 @@ export interface GameState {
   // Event state
   eventLog: EventLogEntry[];
   currentEvent: GameEvent | null;
-  phase: 'idle' | 'roulette' | 'event' | 'animating' | 'result' | 'settlement' | 'zone_transition';
+  phase: 'idle' | 'roulette' | 'event' | 'animating' | 'result' | 'settlement' | 'zone_transition' | 'zone_gate';
   animationIcon: string;
   animationText: string;
   settlementType: 'exit' | 'death' | 'summit' | null;

@@ -4,11 +4,12 @@ import {
   generateEvent, getEmptyRoomCoins, getTreasureCoins,
   getObstacleCost, getObstacleReward, getEventName, getCategoryIcon,
   getZone, getPortalCost, getCoinRainAmount, buildRouletteSegments,
+  getZoneFee, getZonesEntered, getMinGuarantee,
 } from '../utils/gameLogic';
 import {
   ENTRY_FEE, SAFE_EXIT_BONUS, DEATH_KEEP_RATIO, MAX_FLOOR,
   COLORS, ZONE_NAMES, ZONE_DESCS, ZONE_WARNINGS, MERCHANT_ITEMS,
-  COURAGE_PER_FLOOR,
+  COURAGE_PER_FLOOR, ZONE_FEES,
 } from '../utils/constants';
 
 function loadNum(key: string, def: number): number {
@@ -199,7 +200,7 @@ export function useGameState() {
         ns.zoneTransitionName = zt.name;
         ns.zoneTransitionDesc = zt.desc;
         ns.zoneTransitionWarning = zt.warning;
-        ns.phase = 'zone_transition';
+        ns.phase = 'zone_gate';
         ns.resultText = '';
         ns.resultColor = '';
         return ns;
@@ -214,6 +215,33 @@ export function useGameState() {
     setState((prev) => {
       const ns: GameState = { ...prev };
       return applyFloorEffectsAndGenerateRoulette(prev, ns, prev.currentFloor);
+    });
+  }, []);
+
+  const payZoneFee = useCallback(() => {
+    setState((prev) => {
+      const zone = getZone(prev.currentFloor);
+      const fee = getZoneFee(zone);
+      const ns = { ...prev };
+      ns.totalSpent += fee;
+      // Now show zone transition briefly, then generate event
+      ns.phase = 'zone_transition' as const;
+      return ns;
+    });
+  }, []);
+
+  const declineZoneFee = useCallback(() => {
+    setState((prev) => {
+      const bonus = Math.floor(prev.dogTags * SAFE_EXIT_BONUS);
+      const final = prev.dogTags + bonus;
+      const bf = Math.max(prev.historyBestFloor, prev.currentFloor);
+      const tc = prev.historyTotalCoins + final;
+      persistHistory(tc, bf, prev.historyRunCount, prev.historySummitCount);
+      return {
+        ...prev, dogTags: final,
+        phase: 'settlement' as const, settlementType: 'exit' as const,
+        currentEvent: null, historyTotalCoins: tc, historyBestFloor: bf,
+      };
     });
   }, []);
 
@@ -277,10 +305,16 @@ export function useGameState() {
             rText = '哥布林陷阱生效！反偷了 25 塔幣！';
             rColor = COLORS.gold;
           } else {
-            const stolen = Math.round(prev.dogTags * 0.15);
-            dtChange = -stolen;
-            rText = `哥布林偷走了你 ${stolen} 塔幣！`;
-            rColor = COLORS.negative;
+            if (Math.random() < 0.7) {
+              const stolen = Math.round(prev.dogTags * 0.10);
+              dtChange = -stolen;
+              rText = `哥布林偷走了你 ${stolen} 塔幣！`;
+              rColor = COLORS.negative;
+            } else {
+              dtChange = 3;
+              rText = '你靈巧地閃過了哥布林！還撿到了 3 塔幣。';
+              rColor = COLORS.positive;
+            }
           }
           break;
         }
@@ -291,8 +325,7 @@ export function useGameState() {
             const cost = getObstacleCost(prev.currentFloor, prev.hasCampfire, prev.isInjured, prev.steleCurseLayers, prev.courage);
             costPaid = cost;
             const rw = safeZero ? 0 : Math.round(getObstacleReward(prev.currentFloor) * richMul * poisonMul);
-            dtChange = rw;
-            ns.totalSpent += cost;
+            dtChange = rw - cost;
             if (prev.hasCampfire) ns.hasCampfire = false;
             result = 'paid';
             const an = event.type === 'monster' ? '擊退了怪物' : event.type === 'broken_bridge' ? '修復了橋樑' : '打開了門';
@@ -306,8 +339,7 @@ export function useGameState() {
             const cost = Math.round(base * 1.5);
             costPaid = cost;
             const rw = safeZero ? 0 : Math.round(getObstacleReward(prev.currentFloor) * 3 * richMul * poisonMul);
-            dtChange = rw;
-            ns.totalSpent += cost;
+            dtChange = rw - cost;
             if (prev.hasCampfire) ns.hasCampfire = false;
             result = 'paid';
             rText = `開箱成功！獲得 ${rw} 塔幣！`;
@@ -580,7 +612,8 @@ export function useGameState() {
 
       // Death
       if (!ns.isAlive) {
-        const kept = Math.floor(ns.dogTags * DEATH_KEEP_RATIO);
+        const minGuarantee = getMinGuarantee(prev.currentFloor);
+        const kept = Math.max(Math.floor(ns.dogTags * DEATH_KEEP_RATIO), minGuarantee);
         ns.dogTags = kept;
         const tc = prev.historyTotalCoins + kept;
         const bf = ns.historyBestFloor;
@@ -698,7 +731,7 @@ export function useGameState() {
     completeTutorial, resetTutorial,
     forceFloor, forceDeath, forceSummit, forceEvent,
     continueAfterZoneTransition, completeRoulette, goHome,
-    completeAnimation,
+    completeAnimation, payZoneFee, declineZoneFee,
   };
 }
 

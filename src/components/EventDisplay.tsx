@@ -70,7 +70,7 @@ export const EventDisplay: React.FC<Props> = ({ event, state, onResolve, onExit 
               </p>
             )}
             <p style={{ color: COLORS.gold, fontSize: '0.8rem', margin: '4px 0' }}>
-              突破獎勵：+{getObstacleReward(state.currentFloor)} 🪙
+              淨收益：+{getObstacleReward(state.currentFloor) - cost} 🪙（獎勵 {getObstacleReward(state.currentFloor)} - 花費 {cost}）
             </p>
             <button className="btn-secondary" onClick={onExit}>帶著戰利品離開 🏠</button>
           </>
@@ -93,7 +93,7 @@ export const EventDisplay: React.FC<Props> = ({ event, state, onResolve, onExit 
               </p>
             )}
             <p style={{ color: COLORS.gold, fontSize: '0.8rem', margin: '4px 0' }}>
-              開箱獎勵：+{getObstacleReward(state.currentFloor) * 3} 🪙（3倍）
+              淨收益：+{getObstacleReward(state.currentFloor) * 3 - chestCost} 🪙（獎勵 {getObstacleReward(state.currentFloor) * 3} - 花費 {chestCost}）
             </p>
             <button className="btn-secondary" onClick={() => onResolve('skip')}>跳過寶箱，繼續前進</button>
             <button className="btn-secondary" onClick={onExit}>帶著戰利品離開 🏠</button>
@@ -307,7 +307,10 @@ export const EventDisplay: React.FC<Props> = ({ event, state, onResolve, onExit 
             <div style={labelStyle}>📋 可能結果</div>
             {state.hasGoblinTrap
               ? <div>✅ <span style={{ color: goldC }}>陷阱反偷 +25 塔幣</span>（100%，已裝陷阱）</div>
-              : <div>❌ <span style={{ color: badC }}>被偷走 15% 塔幣</span>（100%）</div>
+              : <>
+                  <div>❌ <span style={{ color: badC }}>被偷走 10% 塔幣</span>（70%）</div>
+                  <div>✅ <span style={{ color: goodC }}>閃避成功 +3 塔幣</span>（30%）</div>
+                </>
             }
           </div>
         );

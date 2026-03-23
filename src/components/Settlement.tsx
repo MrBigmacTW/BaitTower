@@ -1,7 +1,7 @@
 import React from 'react';
 import type { GameState } from '../types/game';
 import { COLORS, SAFE_EXIT_BONUS, DEATH_KEEP_RATIO, MAX_FLOOR, ZONE_NAMES, ENTRY_FEE } from '../utils/constants';
-import { getCoinHint, getZone } from '../utils/gameLogic';
+import { getCoinHint, getZone, getMinGuarantee } from '../utils/gameLogic';
 
 interface Props {
   state: GameState;
@@ -68,6 +68,11 @@ export const Settlement: React.FC<Props> = ({ state, onRestart, onShowReplay, on
           <p style={{ color: COLORS.negative, marginBottom: '0.5rem' }}>
             死亡懲罰：僅保留 20%
           </p>
+          {getMinGuarantee(currentFloor) > 0 && dogTags >= getMinGuarantee(currentFloor) && (
+            <p style={{ color: COLORS.positive, fontSize: '0.8rem', marginBottom: '0.5rem' }}>
+              ✅ 保底獎勵生效（至少 {getMinGuarantee(currentFloor)} 🪙）
+            </p>
+          )}
           <hr style={{ border: 'none', borderTop: `1px solid ${COLORS.secondary}`, margin: '0.8rem 0' }} />
           <p style={{ color: COLORS.gold, fontWeight: 'bold', fontSize: '1.2rem' }}>
             最終獲得：{dogTags} 🪙

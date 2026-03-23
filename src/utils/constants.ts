@@ -78,17 +78,33 @@ export const COLORS = {
   skyblue: '#38bdf8',
 };
 
-export const ENTRY_FEE = 99;
+export const ENTRY_FEE = 69;
 export const SAFE_EXIT_BONUS = 0.15;
 export const DEATH_KEEP_RATIO = 0.20; // only keep 20% on death
 
-// Per-floor obstacle cost (TWD)
+export const ZONE_FEES: Record<string, number> = {
+  grass: 69,   // paid as entry fee
+  mist: 69,
+  lava: 79,
+  dragon: 99,
+  sky: 99,
+};
+
+export const ZONE_MIN_GUARANTEE: Record<number, number> = {
+  1: 0,    // zone 1 (草原): no guarantee
+  2: 20,   // zone 2 (迷霧): at least 20 coins
+  3: 50,   // zone 3 (熔岩): at least 50 coins
+  4: 80,   // zone 4 (龍域): at least 80 coins
+  5: 120,  // zone 5 (天空): at least 120 coins
+};
+
+// Per-floor obstacle cost (tower coins)
 export const FLOOR_OBSTACLE_COST: Record<number, number> = {
-  1:19, 2:19, 3:25, 4:25, 5:29, 6:35, 7:35, 8:39, 9:45, 10:49,
-  11:55, 12:59, 13:65, 14:69, 15:79, 16:85, 17:89, 18:99, 19:109, 20:119,
-  21:129, 22:139, 23:149, 24:159, 25:169, 26:179, 27:199, 28:209, 29:219, 30:229,
-  31:249, 32:259, 33:279, 34:299, 35:319, 36:339, 37:359, 38:379, 39:399, 40:419,
-  41:449, 42:479, 43:499, 44:529, 45:559, 46:589, 47:619, 48:649, 49:699,
+  1:2, 2:2, 3:3, 4:3, 5:3, 6:4, 7:4, 8:5, 9:5, 10:6,
+  11:6, 12:7, 13:7, 14:8, 15:8, 16:10, 17:10, 18:12, 19:12, 20:12,
+  21:12, 22:15, 23:15, 24:18, 25:18, 26:25, 27:25, 28:25, 29:30, 30:30,
+  31:25, 32:30, 33:30, 34:35, 35:35, 36:35, 37:45, 38:45, 39:50, 40:50,
+  41:40, 42:45, 43:50, 44:55, 45:55, 46:60, 47:60, 48:70, 49:75,
 };
 
 // Per-floor obstacle reward (tower coins)
@@ -176,6 +192,15 @@ export const PORTAL_COST: Record<string, number> = {
   lava: 129,
   dragon: 199,
   sky: 299,
+};
+
+// Coin rain base amounts (randomized in gameLogic)
+export const COIN_RAIN_BASE: Record<string, number> = {
+  grass: 12,
+  mist: 25,
+  lava: 50,
+  dragon: 80,
+  sky: 150,
 };
 
 // Roulette category icons for display

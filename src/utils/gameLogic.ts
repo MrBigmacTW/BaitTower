@@ -4,6 +4,7 @@ import {
   RARE_SUB_PROBS, FLOOR_OBSTACLE_COST, FLOOR_OBSTACLE_REWARD,
   EMPTY_ROOM_COINS, TREASURE_COINS, SHOP_ITEMS, PORTAL_COST,
   COURAGE_DISCOUNT_INTERVAL, COURAGE_DISCOUNT_STEP, COURAGE_MAX_DISCOUNT,
+  ZONE_FEES, ZONE_MIN_GUARANTEE, COIN_RAIN_BASE,
 } from './constants';
 
 export function getZone(floor: number): Zone {
@@ -241,11 +242,30 @@ export function getPortalCost(floor: number): number {
 }
 
 export function getCoinRainAmount(floor: number): number {
-  const pk = getProbKey(floor);
-  const amounts: Record<string, number> = {
-    protect: 8, grass: 15, mist: 30, lava: 60, dragon: 100, sky: 200,
-  };
-  return amounts[pk] || 15;
+  const zone = getZone(floor);
+  const probKey = getProbKey(floor);
+  const base = COIN_RAIN_BASE[probKey] || COIN_RAIN_BASE[zone] || 15;
+  // Random multiplier: 0.3x to 2.5x for high variance
+  const multiplier = 0.3 + Math.random() * 2.2;
+  return Math.round(base * multiplier);
+}
+
+export function getZoneFee(zone: string): number {
+  return ZONE_FEES[zone] || 69;
+}
+
+export function getZonesEntered(floor: number): number {
+  if (floor <= 0) return 0;
+  if (floor <= 10) return 1;
+  if (floor <= 20) return 2;
+  if (floor <= 30) return 3;
+  if (floor <= 40) return 4;
+  return 5;
+}
+
+export function getMinGuarantee(floor: number): number {
+  const zones = getZonesEntered(floor);
+  return ZONE_MIN_GUARANTEE[zones] || 0;
 }
 
 /** Build 12 roulette segments based on floor probabilities */
@@ -301,12 +321,12 @@ export function getCategoryIcon(cat: EventCategory): string {
 
 export function getObstacleButtonText(type: string, cost: number): string {
   const texts: Record<string, string> = {
-    monster: `擊退怪物（${cost} 元）`,
-    broken_bridge: `修復橋樑（${cost} 元）`,
-    locked_door: `破門而入（${cost} 元）`,
-    locked_chest: `開啟寶箱（${cost} 元）`,
+    monster: `擊退怪物（${cost} 🪙）`,
+    broken_bridge: `修復橋樑（${cost} 🪙）`,
+    locked_door: `破門而入（${cost} 🪙）`,
+    locked_chest: `開啟寶箱（${cost} 🪙）`,
   };
-  return texts[type] || `突破障礙（${cost} 元）`;
+  return texts[type] || `突破障礙（${cost} 🪙）`;
 }
 
 export function getCoinHint(coins: number): string {
