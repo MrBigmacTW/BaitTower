@@ -20,14 +20,7 @@ export const Welcome: React.FC<Props> = ({ onStart }) => {
       }}
     >
       {/* Tower silhouette */}
-      <div
-        style={{
-          fontSize: '6rem',
-          marginBottom: '1rem',
-          filter: 'drop-shadow(0 0 20px rgba(233, 69, 96, 0.5))',
-          animation: 'float 3s ease-in-out infinite',
-        }}
-      >
+      <div className="icon-frame" style={{ width: 100, height: 100, fontSize: '3.5rem', marginBottom: '1.5rem' }}>
         🏰
       </div>
 
@@ -37,6 +30,7 @@ export const Welcome: React.FC<Props> = ({ onStart }) => {
           fontWeight: 'bold',
           color: COLORS.gold,
           marginBottom: '0.5rem',
+          letterSpacing: '4px',
           textShadow: '0 0 20px rgba(255, 215, 0, 0.3)',
         }}
       >

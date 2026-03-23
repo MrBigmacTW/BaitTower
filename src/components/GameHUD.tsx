@@ -41,7 +41,7 @@ export const GameHUD: React.FC<Props> = ({ state, onExit }) => {
   if (state.detourCurse) buffs.push({ icon: '🌀', label: '繞道（下層致命+15%）', color: COLORS.negative });
 
   return (
-    <div style={{ background: COLORS.card, padding: '10px 16px' }}>
+    <div className="glass-card" style={{ padding: '12px 16px', borderRadius: '0 0 16px 16px' }}>
       {/* Line 1 */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
         <div style={{ color: COLORS.text, fontWeight: 'bold', fontSize: '1rem' }}>
@@ -53,7 +53,7 @@ export const GameHUD: React.FC<Props> = ({ state, onExit }) => {
       </div>
 
       {/* Line 2: Progress bar */}
-      <div style={{ display: 'flex', height: '8px', borderRadius: '4px', overflow: 'hidden', marginBottom: '8px', background: COLORS.secondary }}>
+      <div className="progress-bar" style={{ marginBottom: '8px' }}>
         {segments.map(seg => {
           const w = ((seg.end - seg.start + 1) / MAX_FLOOR) * 100;
           const filled = Math.max(0, Math.min(seg.end, floor) - seg.start + 1);
@@ -69,24 +69,24 @@ export const GameHUD: React.FC<Props> = ({ state, onExit }) => {
       {/* Line 3: Stats */}
       <div style={{ display: 'flex', justifyContent: 'space-around', marginBottom: '6px' }}>
         <div style={{ textAlign: 'center' }}>
-          <span style={{ color: COLORS.gold, fontWeight: 'bold', fontSize: '1.1rem' }}>🪙 {state.dogTags}</span>
-          <div style={{ color: COLORS.muted, fontSize: '0.7rem' }}>塔幣</div>
+          <span className="stat-value" style={{ color: COLORS.gold }}>🪙 {state.dogTags}</span>
+          <div className="stat-label">塔幣</div>
         </div>
         <div style={{ textAlign: 'center' }}>
-          <span style={{ color: state.dogTags > 0 && state.dogTags >= state.totalSpent * 0.1 ? COLORS.positive : COLORS.muted, fontWeight: 'bold', fontSize: '1.1rem' }}>
+          <span className="stat-value" style={{ color: state.dogTags > 0 && state.dogTags >= state.totalSpent * 0.1 ? COLORS.positive : COLORS.muted }}>
             💰 {state.totalSpent}
           </span>
-          <div style={{ color: COLORS.muted, fontSize: '0.7rem' }}>本次投入</div>
+          <div className="stat-label">本次投入</div>
         </div>
         {state.courage > 0 && (
           <div style={{ textAlign: 'center' }}>
-            <span style={{ color: COLORS.purple, fontWeight: 'bold', fontSize: '1.1rem' }}>
+            <span className="stat-value" style={{ color: COLORS.purple }}>
               ⚔️ {state.courage}
               {getCourageDiscount(state.courage) > 0 && (
                 <span style={{ fontSize: '0.75rem' }}>（-{Math.round(getCourageDiscount(state.courage) * 100)}%）</span>
               )}
             </span>
-            <div style={{ color: COLORS.muted, fontSize: '0.7rem' }}>勇氣</div>
+            <div className="stat-label">勇氣</div>
           </div>
         )}
       </div>

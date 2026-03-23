@@ -286,11 +286,6 @@ export const EventDisplay: React.FC<Props> = ({ event, state, onResolve, onExit 
   };
 
   const renderOutcomeInfo = () => {
-    const infoStyle: React.CSSProperties = {
-      marginTop: '1.2rem', padding: '0.8rem', borderRadius: '8px',
-      background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-      textAlign: 'left', fontSize: '0.72rem', color: COLORS.muted, lineHeight: 1.7,
-    };
     const labelStyle: React.CSSProperties = { fontWeight: 'bold', color: COLORS.text, marginBottom: '4px', fontSize: '0.75rem' };
     const goodC = COLORS.positive;
     const badC = COLORS.negative;
@@ -308,7 +303,7 @@ export const EventDisplay: React.FC<Props> = ({ event, state, onResolve, onExit 
         return null;
       case 'goblin_steal':
         return (
-          <div style={infoStyle}>
+          <div className="outcome-panel">
             <div style={labelStyle}>📋 可能結果</div>
             {state.hasGoblinTrap
               ? <div>✅ <span style={{ color: goldC }}>陷阱反偷 +25 塔幣</span>（100%，已裝陷阱）</div>
@@ -319,7 +314,7 @@ export const EventDisplay: React.FC<Props> = ({ event, state, onResolve, onExit 
 
       case 'monster': case 'broken_bridge': case 'locked_door':
         return (
-          <div style={infoStyle}>
+          <div className="outcome-panel">
             <div style={labelStyle}>📋 可能結果</div>
             <div>💰 <span style={{ color: neutralC }}>付費突破</span> → <span style={{ color: goodC }}>+{getObstacleReward(state.currentFloor)} 塔幣</span></div>
             <div>🏠 <span style={{ color: COLORS.muted }}>撤退離塔</span> → 保留所有塔幣 +15% 獎勵</div>
@@ -327,7 +322,7 @@ export const EventDisplay: React.FC<Props> = ({ event, state, onResolve, onExit 
         );
       case 'locked_chest':
         return (
-          <div style={infoStyle}>
+          <div className="outcome-panel">
             <div style={labelStyle}>📋 可能結果</div>
             <div>💰 <span style={{ color: neutralC }}>付費開箱</span> → <span style={{ color: goldC }}>+{getObstacleReward(state.currentFloor) * 3} 塔幣（3倍獎勵）</span></div>
             <div>⏭️ <span style={{ color: COLORS.muted }}>跳過</span> → 安全通過，無獎勵</div>
@@ -340,14 +335,14 @@ export const EventDisplay: React.FC<Props> = ({ event, state, onResolve, onExit 
         const confrontRate = state.hasLucky ? 50 : 30;
         if (state.hasShield) {
           return (
-            <div style={infoStyle}>
+            <div className="outcome-panel">
               <div style={labelStyle}>📋 可能結果</div>
               <div>🛡️ <span style={{ color: goodC }}>護盾擋住攻擊</span>（100%，護盾碎裂）</div>
             </div>
           );
         }
         return (
-          <div style={infoStyle}>
+          <div className="outcome-panel">
             <div style={labelStyle}>📋 閃避結果</div>
             <div>✅ <span style={{ color: neutralC }}>存活但受傷</span>（{dodgeRate}%）</div>
             <div>💀 <span style={{ color: badC }}>死亡 → 僅保留 20% 塔幣</span>（{100 - dodgeRate}%）</div>
@@ -361,14 +356,14 @@ export const EventDisplay: React.FC<Props> = ({ event, state, onResolve, onExit 
         const survRate = state.hasLucky ? 90 : 70;
         if (state.hasShield) {
           return (
-            <div style={infoStyle}>
+            <div className="outcome-panel">
               <div style={labelStyle}>📋 可能結果</div>
               <div>🛡️ <span style={{ color: goodC }}>護盾擋住崩塌</span>（100%，護盾碎裂）</div>
             </div>
           );
         }
         return (
-          <div style={infoStyle}>
+          <div className="outcome-panel">
             <div style={labelStyle}>📋 可能結果</div>
             <div>✅ <span style={{ color: neutralC }}>抓住邊緣，存活但受傷</span>（{survRate}%）</div>
             <div>💀 <span style={{ color: badC }}>墜入深淵 → 僅保留 20% 塔幣</span>（{100 - survRate}%）</div>
@@ -379,7 +374,7 @@ export const EventDisplay: React.FC<Props> = ({ event, state, onResolve, onExit 
         return null;
       case 'chest_mimic':
         return (
-          <div style={infoStyle}>
+          <div className="outcome-panel">
             <div style={labelStyle}>📋 打開寶箱的結果</div>
             <div>😖 <span style={{ color: neutralC }}>扣除 30% 塔幣</span>（40%）</div>
             {state.hasShield
@@ -393,7 +388,7 @@ export const EventDisplay: React.FC<Props> = ({ event, state, onResolve, onExit 
       case 'dark_elf': {
         const challRate = state.hasLucky ? 70 : 50;
         return (
-          <div style={infoStyle}>
+          <div className="outcome-panel">
             <div style={labelStyle}>📋 交出塔幣</div>
             <div>💰 <span style={{ color: neutralC }}>失去 50% 塔幣，安全通過</span>（100%）</div>
             <div style={{ ...labelStyle, marginTop: '6px' }}>📋 接受挑戰</div>
@@ -408,7 +403,7 @@ export const EventDisplay: React.FC<Props> = ({ event, state, onResolve, onExit 
 
       case 'crossroads':
         return (
-          <div style={infoStyle}>
+          <div className="outcome-panel">
             <div style={labelStyle}>📋 岔路選擇</div>
             <div>🛤️ <span style={{ color: goodC }}>安全通道</span>：2 層無致命，但無塔幣獎勵</div>
             <div>💎 <span style={{ color: goldC }}>寶物密道</span>：2 層塔幣 ×3，但致命機率 ×2</div>
@@ -416,7 +411,7 @@ export const EventDisplay: React.FC<Props> = ({ event, state, onResolve, onExit 
         );
       case 'casino':
         return (
-          <div style={infoStyle}>
+          <div className="outcome-panel">
             <div style={labelStyle}>📋 賭場規則</div>
             <div>🎲 正面（50%）→ <span style={{ color: goldC }}>贏回等額塔幣</span></div>
             <div>🎲 反面（50%）→ <span style={{ color: badC }}>失去下注塔幣</span></div>
@@ -424,7 +419,7 @@ export const EventDisplay: React.FC<Props> = ({ event, state, onResolve, onExit 
         );
       case 'altar':
         return (
-          <div style={infoStyle}>
+          <div className="outcome-panel">
             <div style={labelStyle}>📋 祭壇效果</div>
             <div>⛩️ <span style={{ color: COLORS.purple }}>獻祭全部塔幣 → 5 層免疫致命陷阱</span></div>
             <div>⏭️ <span style={{ color: COLORS.muted }}>離開 → 無事發生</span></div>
@@ -434,7 +429,7 @@ export const EventDisplay: React.FC<Props> = ({ event, state, onResolve, onExit 
         return null;
       case 'curse_stele':
         return (
-          <div style={infoStyle}>
+          <div className="outcome-panel">
             <div style={labelStyle}>📋 觸碰石碑</div>
             <div>🪨 <span style={{ color: neutralC }}>3 層付費 ×2</span>，但 <span style={{ color: goldC }}>+30 塔幣</span></div>
             <div style={{ ...labelStyle, marginTop: '6px' }}>📋 繞道走</div>
@@ -446,7 +441,7 @@ export const EventDisplay: React.FC<Props> = ({ event, state, onResolve, onExit 
         return null;
       case 'portal':
         return (
-          <div style={infoStyle}>
+          <div className="outcome-panel">
             <div style={labelStyle}>📋 傳送門效果</div>
             <div>🌀 <span style={{ color: COLORS.purple }}>直接跳過 2 層</span>{portalCost > 0 && `（費用 ${portalCost} 元）`}</div>
             <div>⏭️ <span style={{ color: COLORS.muted }}>不進入 → 正常走下一層</span></div>
@@ -462,10 +457,9 @@ export const EventDisplay: React.FC<Props> = ({ event, state, onResolve, onExit 
   return (
     <div className="event-display" style={{ animation: 'fadeIn 0.3s ease-in' }}>
       <div style={{ textAlign: 'center', padding: '1rem' }}>
-        <div style={{
-          fontSize: '4rem', marginBottom: '0.5rem',
-          animation: isDeadly ? 'shake 0.3s ease-in-out infinite' : 'pulse 2s ease-in-out infinite',
-        }}>{icon}</div>
+        <div className={`icon-frame ${isDeadly ? 'deadly' : event.category === 'rare' ? 'rare' : event.category === 'choice' ? 'choice' : event.category === 'obstacle' ? 'obstacle' : ''}`}>
+          {icon}
+        </div>
         <h3 style={{ color: isDeadly ? COLORS.negative : COLORS.text, fontSize: '1.3rem', marginBottom: '0.3rem' }}>
           {event.name}
         </h3>

@@ -21,9 +21,7 @@ export const Settlement: React.FC<Props> = ({ state, onRestart, onShowReplay, on
         minHeight: '100vh', background: `radial-gradient(circle, #2a1a0a 0%, ${COLORS.bg} 70%)`,
         padding: '2rem', textAlign: 'center',
       }}>
-        <div style={{ fontSize: '2rem', marginBottom: '0.5rem', animation: 'pulse 1s ease-in-out infinite' }}>
-          🏆✨🎆✨🏆
-        </div>
+        <div className="icon-frame rare" style={{ width: 100, height: 100, fontSize: '2.5rem' }}>🏆</div>
         <h1 style={{ color: COLORS.gold, fontSize: '2rem', marginBottom: '1rem' }}>恭喜登頂！</h1>
         <p style={{ color: COLORS.text, fontSize: '1.1rem', marginBottom: '0.5rem' }}>
           你征服了 {MAX_FLOOR} 層高塔
@@ -59,13 +57,11 @@ export const Settlement: React.FC<Props> = ({ state, onRestart, onShowReplay, on
         minHeight: '100vh', background: `radial-gradient(circle, #1a0a0a 0%, ${COLORS.bg} 70%)`,
         padding: '2rem', textAlign: 'center',
       }}>
-        <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>💀</div>
+        <div className="icon-frame deadly" style={{ width: 100, height: 100, fontSize: '3rem' }}>💀</div>
         <h1 style={{ color: COLORS.negative, fontSize: '1.6rem', marginBottom: '1rem' }}>
           你倒在了第 {currentFloor} 層...
         </h1>
-        <div style={{
-          background: COLORS.card, borderRadius: '12px', padding: '1.5rem', width: '300px', marginBottom: '1rem',
-        }}>
+        <div className="settlement-card">
           <p style={{ color: COLORS.text, marginBottom: '0.5rem' }}>
             累積塔幣：<span style={{ textDecoration: 'line-through', color: COLORS.muted }}>{preDeath}</span>
           </p>
@@ -78,10 +74,7 @@ export const Settlement: React.FC<Props> = ({ state, onRestart, onShowReplay, on
           </p>
           <p style={{ color: COLORS.muted, marginTop: '0.5rem' }}>本次投入：{totalSpent} 元｜回報率 {totalSpent > 0 ? Math.round((dogTags / totalSpent) * 100) : 0}%</p>
         </div>
-        <div style={{
-          background: COLORS.card, borderRadius: '10px', padding: '10px 18px',
-          marginBottom: '1.5rem', color: COLORS.gold, fontSize: '0.85rem', maxWidth: '300px',
-        }}>
+        <div className="coin-hint">
           💡 {getCoinHint(state.historyTotalCoins)}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '260px' }}>
@@ -105,11 +98,9 @@ export const Settlement: React.FC<Props> = ({ state, onRestart, onShowReplay, on
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       minHeight: '100vh', background: COLORS.bg, padding: '2rem', textAlign: 'center',
     }}>
-      <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🏰</div>
+      <div className="icon-frame" style={{ width: 100, height: 100, fontSize: '3rem' }}>🏰</div>
       <h1 style={{ color: COLORS.positive, fontSize: '1.6rem', marginBottom: '1rem' }}>明智的撤退！</h1>
-      <div style={{
-        background: COLORS.card, borderRadius: '12px', padding: '1.5rem', width: '300px', marginBottom: '1rem',
-      }}>
+      <div className="settlement-card">
         <p style={{ color: COLORS.text, marginBottom: '0.5rem' }}>
           到達第 <span style={{ color: COLORS.gold, fontWeight: 'bold' }}>{currentFloor}</span> 層（{zoneName}）
         </p>
@@ -125,10 +116,7 @@ export const Settlement: React.FC<Props> = ({ state, onRestart, onShowReplay, on
         </p>
         <p style={{ color: COLORS.muted, marginTop: '0.5rem' }}>本次投入：{totalSpent} 元｜回報率 {totalSpent > 0 ? Math.round((dogTags / totalSpent) * 100) : 0}%</p>
       </div>
-      <div style={{
-        background: COLORS.card, borderRadius: '10px', padding: '10px 18px',
-        marginBottom: '1.5rem', color: COLORS.gold, fontSize: '0.85rem', maxWidth: '300px',
-      }}>
+      <div className="coin-hint">
         💡 {getCoinHint(state.historyTotalCoins)}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '260px' }}>

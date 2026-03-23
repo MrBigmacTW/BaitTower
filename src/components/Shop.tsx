@@ -9,13 +9,13 @@ export const Shop: React.FC<Props> = ({ totalCoins, onClose }) => {
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.bg, padding: '1.5rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '12px' }}>
         <h2 style={{ color: COLORS.gold, fontSize: '1.3rem' }}>🏪 商城</h2>
         <button className="btn-secondary" style={{ minWidth: 'auto', padding: '8px 16px' }} onClick={onClose}>返回</button>
       </div>
 
-      <div style={{
-        background: COLORS.card, borderRadius: '10px', padding: '12px 16px',
+      <div className="glass-card" style={{
+        padding: '12px 16px',
         marginBottom: '1rem', textAlign: 'center',
       }}>
         <span style={{ color: COLORS.gold, fontWeight: 'bold', fontSize: '1.2rem' }}>🪙 {totalCoins}</span>
@@ -31,16 +31,16 @@ export const Shop: React.FC<Props> = ({ totalCoins, onClose }) => {
         {SHOP_ITEMS.map((item, i) => {
           const canAfford = totalCoins >= item.price;
           return (
-            <div key={i} style={{
-              background: COLORS.card, borderRadius: '10px', padding: '12px 16px',
+            <div key={i} className="glass-card" style={{
+              marginBottom: '8px', padding: '14px 18px',
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               border: canAfford ? `1px solid ${item.color}40` : '1px solid transparent',
               boxShadow: canAfford ? `0 0 12px ${item.color}20` : 'none',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <span style={{
-                  background: item.color, color: '#000', borderRadius: '4px',
-                  padding: '2px 8px', fontSize: '0.65rem', fontWeight: 'bold', minWidth: '32px', textAlign: 'center',
+                  background: item.color, color: '#000', borderRadius: '6px',
+                  padding: '2px 8px', fontSize: '0.7rem', fontWeight: '700', letterSpacing: '1px', minWidth: '32px', textAlign: 'center',
                 }}>{item.tier}</span>
                 <span style={{ color: COLORS.text, fontSize: '0.95rem' }}>{item.name}</span>
               </div>

@@ -56,7 +56,7 @@ export const RouletteWheel: React.FC<Props> = ({ segments, resultIndex, onComple
       display: 'flex', flexDirection: 'column', alignItems: 'center',
       animation: 'fadeIn 0.3s ease-in',
     }}>
-      <p style={{ color: COLORS.muted, fontSize: '0.9rem', marginBottom: '12px' }}>
+      <p style={{ color: COLORS.muted, fontSize: '0.9rem', marginBottom: '12px', letterSpacing: '3px', fontWeight: 700 }}>
         命運之輪轉動中...
       </p>
 
@@ -128,6 +128,7 @@ export const RouletteWheel: React.FC<Props> = ({ segments, resultIndex, onComple
             border: `3px solid ${COLORS.primary}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '1.2rem', zIndex: 5,
+            boxShadow: '0 0 20px rgba(233,69,96,0.4)',
           }}>
             🏰
           </div>

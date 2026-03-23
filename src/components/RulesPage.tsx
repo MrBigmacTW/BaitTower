@@ -4,8 +4,8 @@ import { COLORS, MAX_FLOOR } from '../utils/constants';
 interface Props { onClose: () => void; }
 
 const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-  <div style={{ background: COLORS.card, borderRadius: '10px', padding: '14px 16px', marginBottom: '10px' }}>
-    <h3 style={{ color: COLORS.gold, fontSize: '1rem', marginBottom: '8px' }}>{title}</h3>
+  <div className="glass-card" style={{ padding: '14px 16px', marginBottom: '10px' }}>
+    <h3 style={{ color: COLORS.gold, fontSize: '1rem', marginBottom: '8px', letterSpacing: '2px' }}>{title}</h3>
     <div style={{ color: COLORS.text, fontSize: '0.85rem', lineHeight: 1.7 }}>{children}</div>
   </div>
 );

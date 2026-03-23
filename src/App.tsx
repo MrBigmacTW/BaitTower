@@ -125,7 +125,7 @@ function App() {
       }}>
         <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🏠</div>
         <h2 style={{ color: COLORS.text, marginBottom: '1rem' }}>確定要撤退嗎？</h2>
-        <div style={{
+        <div className="glass-card" style={{
           background: COLORS.card, borderRadius: '12px', padding: '1.5rem', width: '300px', marginBottom: '1.5rem',
         }}>
           <p style={{ color: COLORS.text, marginBottom: '0.5rem' }}>
@@ -161,6 +161,7 @@ function App() {
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         minHeight: '100vh', background: 'rgba(0,0,0,0.9)', padding: '2rem', textAlign: 'center',
       }}>
+        <div className="glass-card" style={{ padding: '2rem', textAlign: 'center' }}>
         <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚔️</div>
         <h2 style={{ color: COLORS.text, marginBottom: '1rem' }}>再來一次？</h2>
         <p style={{ color: COLORS.orange, fontSize: '1.1rem', marginBottom: '1.5rem' }}>
@@ -173,6 +174,7 @@ function App() {
           <button className="btn-secondary" onClick={() => setShowRestartConfirm(false)}>
             取消
           </button>
+        </div>
         </div>
       </div>
     );
@@ -208,7 +210,7 @@ function App() {
       : state.zoneTransitionName === '熔岩地帶' ? 'lava'
       : state.zoneTransitionName === '龍域' ? 'dragon' : 'sky'] || COLORS.gold;
     return (
-      <div style={{
+      <div className="zone-transition" style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         minHeight: '100vh', background: COLORS.bg, textAlign: 'center', animation: 'fadeIn 0.5s ease-in',
         padding: '2rem',
@@ -240,11 +242,11 @@ function App() {
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       minHeight: '100vh', background: COLORS.bg, padding: '2rem', textAlign: 'center',
     }}>
-      <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🏰</div>
-      <h1 style={{ color: COLORS.gold, fontSize: '2rem', marginBottom: '1.5rem' }}>勇者登塔</h1>
+      <div className="icon-frame" style={{ width: 100, height: 100, fontSize: '3.5rem', marginBottom: '1rem' }}>🏰</div>
+      <h1 style={{ color: COLORS.gold, fontSize: '2rem', marginBottom: '1.5rem', letterSpacing: '4px', textShadow: '0 0 20px rgba(255,215,0,0.3)' }}>勇者登塔</h1>
 
-      <div style={{
-        background: COLORS.card, borderRadius: '12px', padding: '14px 20px',
+      <div className="glass-card" style={{
+        padding: '14px 20px',
         marginBottom: '1rem', width: '300px', fontSize: '0.85rem',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
@@ -265,8 +267,8 @@ function App() {
         </div>
       </div>
 
-      <div style={{
-        background: COLORS.card, borderRadius: '12px', padding: '14px 20px',
+      <div className="glass-card" style={{
+        padding: '14px 20px',
         marginBottom: '1.5rem', width: '300px', fontSize: '0.8rem', textAlign: 'left',
         border: '1px solid rgba(255,215,0,0.15)',
       }}>
@@ -313,18 +315,15 @@ function App() {
             </button>
           </>
         ) : state.phase === 'animating' ? (
-          <div style={{
-            textAlign: 'center', display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center', animation: 'fadeIn 0.3s ease-in',
+          <div className="glass-card" style={{
+            textAlign: 'center', padding: '3rem 2rem',
+            animation: 'fadeIn 0.3s ease-in',
           }}>
-            <div style={{
-              fontSize: '4rem', marginBottom: '1.5rem',
-              animation: 'pulse 0.75s ease-in-out infinite',
-            }}>
+            <div className="icon-frame" style={{ width: 100, height: 100, fontSize: '3rem' }}>
               {state.animationIcon}
             </div>
             <div style={{
-              color: COLORS.text, fontSize: '1.3rem', fontWeight: 'bold',
+              color: '#e0e0e0', fontSize: '1.3rem', fontWeight: 'bold',
               letterSpacing: '2px',
             }}>
               {state.animationText}
@@ -333,7 +332,7 @@ function App() {
         ) : state.phase === 'event' && state.currentEvent ? (
           <EventDisplay event={state.currentEvent} state={state} onResolve={resolveEvent} onExit={handleExitWithConfirm} />
         ) : state.phase === 'result' ? (
-          <div style={{ textAlign: 'center', maxWidth: '340px', animation: 'fadeIn 0.3s ease-in' }}>
+          <div className="glass-card" style={{ textAlign: 'center', maxWidth: '340px', padding: '2rem', animation: 'fadeIn 0.3s ease-in' }}>
             {state.resultText && (
               <div style={{
                 color: state.resultColor || COLORS.positive, fontSize: '1.2rem',

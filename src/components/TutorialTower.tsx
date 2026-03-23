@@ -11,14 +11,15 @@ export const TutorialTower: React.FC<Props> = ({ onComplete }) => {
 
   const tip = (text: string) => (
     <div style={{
-      background: COLORS.primary, color: 'white', padding: '10px 16px', borderRadius: '10px',
+      background: 'rgba(233, 69, 96, 0.15)', color: 'white', padding: '10px 16px', borderRadius: '12px',
       fontSize: '0.85rem', lineHeight: 1.5, marginBottom: '1rem', position: 'relative',
       maxWidth: '320px', textAlign: 'center',
+      border: '1px solid rgba(233, 69, 96, 0.3)', backdropFilter: 'blur(8px)',
     }}>
       <div style={{
         position: 'absolute', top: '-8px', left: '50%', transform: 'translateX(-50%)',
         width: 0, height: 0, borderLeft: '8px solid transparent', borderRight: '8px solid transparent',
-        borderBottom: `8px solid ${COLORS.primary}`,
+        borderBottom: '8px solid rgba(233, 69, 96, 0.3)',
       }} />
       {text}
     </div>
@@ -132,11 +133,11 @@ export const TutorialTower: React.FC<Props> = ({ onComplete }) => {
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       minHeight: '100vh', background: COLORS.bg, padding: '2rem',
     }}>
-      <div style={{
-        position: 'absolute', top: '1rem', right: '1rem', background: COLORS.card,
-        borderRadius: '8px', padding: '8px 16px', color: COLORS.gold, fontWeight: 'bold',
+      <div className="glass-card" style={{
+        position: 'absolute', top: '1rem', right: '1rem',
+        padding: '8px 16px', color: COLORS.gold, fontWeight: 'bold',
       }}>🪙 {coins} 塔幣</div>
-      <div style={{ background: COLORS.card, borderRadius: '16px', padding: '2rem', maxWidth: '360px', width: '100%' }}>
+      <div className="glass-card" style={{ padding: '2rem', maxWidth: '360px', width: '100%' }}>
         {renderStep()}
       </div>
     </div>
