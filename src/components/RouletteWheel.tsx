@@ -1,26 +1,51 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { COLORS } from '../utils/constants';
+import React, { useEffect, useState, useRef } from 'react';
+import { COLORS, ZONE_ROULETTE_COLORS } from '../utils/constants';
 
 interface Props {
   segments: string[]; // 12 category icons
   resultIndex: number; // winning segment index
   onComplete: () => void;
+  zone?: string;
 }
 
 const SEGMENT_COUNT = 12;
 const SEGMENT_ANGLE = 360 / SEGMENT_COUNT;
 
-const SEGMENT_COLORS = [
+const DEFAULT_COLORS = [
   '#2a1a3e', '#1a2a3e', '#3e2a1a', '#1a3e2a',
   '#2a1a3e', '#1a2a3e', '#3e2a1a', '#1a3e2a',
   '#2a1a3e', '#1a2a3e', '#3e2a1a', '#1a3e2a',
 ];
 
-export const RouletteWheel: React.FC<Props> = ({ segments, resultIndex, onComplete }) => {
+// Category tint colors for overlay
+const CATEGORY_TINTS: Record<string, string> = {
+  '🎁': 'rgba(74, 222, 128, 0.4)',
+  '⚔️': 'rgba(249, 115, 22, 0.4)',
+  '💀': 'rgba(248, 113, 113, 0.4)',
+  '❓': 'rgba(168, 85, 247, 0.4)',
+  '⭐': 'rgba(255, 215, 0, 0.4)',
+  // Summit roulette icons
+  '🎮': 'rgba(255, 215, 0, 0.6)',
+  '📦': 'rgba(249, 115, 22, 0.4)',
+  '🎀': 'rgba(74, 222, 128, 0.3)',
+  '💰': 'rgba(255, 215, 0, 0.4)',
+};
+
+const CATEGORY_LEGEND = [
+  { icon: '🎁', label: '自由', color: 'rgba(74, 222, 128, 0.8)' },
+  { icon: '⚔️', label: '障礙', color: 'rgba(249, 115, 22, 0.8)' },
+  { icon: '💀', label: '致命', color: 'rgba(248, 113, 113, 0.8)' },
+  { icon: '❓', label: '選擇', color: 'rgba(168, 85, 247, 0.8)' },
+  { icon: '⭐', label: '稀有', color: 'rgba(255, 215, 0, 0.8)' },
+];
+
+export const RouletteWheel: React.FC<Props> = ({ segments, resultIndex, onComplete, zone }) => {
   const [phase, setPhase] = useState<'ready' | 'spinning' | 'done'>('ready');
   const [rotation, setRotation] = useState(0);
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
+
+  const segColors = (zone && ZONE_ROULETTE_COLORS[zone]) ? ZONE_ROULETTE_COLORS[zone] : DEFAULT_COLORS;
 
   // Phase 1: after mount, start spinning
   useEffect(() => {
@@ -50,6 +75,9 @@ export const RouletteWheel: React.FC<Props> = ({ segments, resultIndex, onComple
     }, 2200);
     return () => clearTimeout(timer);
   }, [phase, rotation]);
+
+  // Check if these are standard category segments (for legend)
+  const hasStandardSegments = segments.some(s => ['🎁','⚔️','💀','❓','⭐'].includes(s));
 
   return (
     <div style={{
@@ -93,6 +121,7 @@ export const RouletteWheel: React.FC<Props> = ({ segments, resultIndex, onComple
         >
           {segments.map((icon, i) => {
             const angle = i * SEGMENT_ANGLE;
+            const tint = CATEGORY_TINTS[icon] || 'transparent';
             return (
               <div key={i} style={{
                 position: 'absolute',
@@ -100,10 +129,16 @@ export const RouletteWheel: React.FC<Props> = ({ segments, resultIndex, onComple
                 top: '0', left: '50%',
                 transformOrigin: '0% 100%',
                 transform: `rotate(${angle - 90}deg) skewY(${-(90 - SEGMENT_ANGLE)}deg)`,
-                background: SEGMENT_COLORS[i % SEGMENT_COLORS.length],
+                background: segColors[i % segColors.length],
                 borderRight: '1px solid rgba(255,255,255,0.1)',
                 overflow: 'hidden',
               }}>
+                {/* Category tint overlay */}
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  background: tint,
+                }} />
                 <div style={{
                   position: 'absolute',
                   left: '30%', top: '30%',
@@ -143,6 +178,20 @@ export const RouletteWheel: React.FC<Props> = ({ segments, resultIndex, onComple
           animation: 'pulse 0.5s ease-in-out',
         }}>
           {segments[resultIndex]}
+        </div>
+      )}
+
+      {/* Legend for standard segments */}
+      {hasStandardSegments && (
+        <div style={{
+          display: 'flex', gap: '10px', marginTop: '12px', flexWrap: 'wrap', justifyContent: 'center',
+        }}>
+          {CATEGORY_LEGEND.map(l => (
+            <div key={l.icon} style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.7rem' }}>
+              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: l.color }} />
+              <span style={{ color: COLORS.muted }}>{l.icon} {l.label}</span>
+            </div>
+          ))}
         </div>
       )}
     </div>

@@ -15,20 +15,42 @@ export const Settlement: React.FC<Props> = ({ state, onRestart, onShowReplay, on
   const { settlementType, currentFloor, dogTags, totalSpent } = state;
 
   if (settlementType === 'summit') {
+    const prize = state.summitRoulettePrize;
+    const isPS5Win = prize?.isPS5 === true;
     return (
       <div style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        minHeight: '100vh', background: `radial-gradient(circle, #2a1a0a 0%, ${COLORS.bg} 70%)`,
+        minHeight: '100vh', background: isPS5Win
+          ? `radial-gradient(circle, #3a2a0a 0%, ${COLORS.bg} 70%)`
+          : `radial-gradient(circle, #2a1a0a 0%, ${COLORS.bg} 70%)`,
         padding: '2rem', textAlign: 'center',
       }}>
-        <div className="icon-frame rare" style={{ width: 100, height: 100, fontSize: '2.5rem' }}>🏆</div>
+        <div className="icon-frame rare" style={{ width: 100, height: 100, fontSize: '2.5rem' }}>
+          {isPS5Win ? '🎮' : '🏆'}
+        </div>
         <h1 style={{ color: COLORS.gold, fontSize: '2rem', marginBottom: '1rem' }}>恭喜登頂！</h1>
         <p style={{ color: COLORS.text, fontSize: '1.1rem', marginBottom: '0.5rem' }}>
           你征服了 {MAX_FLOOR} 層高塔
         </p>
-        <p style={{ color: COLORS.gold, fontSize: '1.3rem', fontWeight: 'bold', marginBottom: '1rem' }}>
-          獲得 PlayStation 5！
-        </p>
+        {isPS5Win ? (
+          <>
+            <p style={{ color: COLORS.gold, fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem', animation: 'pulse 1s infinite' }}>
+              🎉 獲得 PlayStation 5！🎉
+            </p>
+            <p style={{ color: COLORS.muted, marginBottom: '0.5rem' }}>
+              登頂大獎輪盤中出現了 PS5！
+            </p>
+          </>
+        ) : prize ? (
+          <>
+            <p style={{ color: COLORS.gold, fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+              登頂大獎：+{prize.coins} 塔幣！
+            </p>
+            <p style={{ color: COLORS.muted, fontSize: '0.8rem', marginBottom: '0.5rem' }}>
+              （PS5 機率將隨登頂次數提升）
+            </p>
+          </>
+        ) : null}
         <p style={{ color: COLORS.muted, marginBottom: '0.5rem' }}>
           累積塔幣：{dogTags} 🪙（額外保留）
         </p>
@@ -49,8 +71,9 @@ export const Settlement: React.FC<Props> = ({ state, onRestart, onShowReplay, on
   }
 
   if (settlementType === 'death') {
-    // Death: dogTags is already reduced to 20%
-    const preDeath = Math.round(dogTags / DEATH_KEEP_RATIO);
+    // Death: dogTags is already reduced. Use preDeathCoins if available for accuracy.
+    const preDeath = state.preDeathCoins || Math.round(dogTags / DEATH_KEEP_RATIO);
+    const guaranteeKickedIn = Math.floor(preDeath * DEATH_KEEP_RATIO) < getMinGuarantee(currentFloor);
     return (
       <div style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
@@ -68,7 +91,7 @@ export const Settlement: React.FC<Props> = ({ state, onRestart, onShowReplay, on
           <p style={{ color: COLORS.negative, marginBottom: '0.5rem' }}>
             死亡懲罰：僅保留 20%
           </p>
-          {getMinGuarantee(currentFloor) > 0 && dogTags >= getMinGuarantee(currentFloor) && (
+          {getMinGuarantee(currentFloor) > 0 && guaranteeKickedIn && (
             <p style={{ color: COLORS.positive, fontSize: '0.8rem', marginBottom: '0.5rem' }}>
               ✅ 保底獎勵生效（至少 {getMinGuarantee(currentFloor)} 🪙）
             </p>

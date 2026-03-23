@@ -6,9 +6,10 @@ import { getZone, getCourageDiscount } from '../utils/gameLogic';
 interface Props {
   state: GameState;
   onExit: () => void;
+  onShowHelp: () => void;
 }
 
-export const GameHUD: React.FC<Props> = ({ state, onExit }) => {
+export const GameHUD: React.FC<Props> = ({ state, onExit: _onExit, onShowHelp }) => {
   const zone = getZone(state.currentFloor || 1);
   const zoneName = ZONE_NAMES[zone];
   const floor = state.currentFloor;
@@ -67,7 +68,7 @@ export const GameHUD: React.FC<Props> = ({ state, onExit }) => {
       </div>
 
       {/* Line 3: Stats */}
-      <div style={{ display: 'flex', justifyContent: 'space-around', marginBottom: '6px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'flex-start', marginBottom: '6px' }}>
         <div style={{ textAlign: 'center' }}>
           <span className="stat-value" style={{ color: COLORS.gold }}>🪙 {state.dogTags}</span>
           <div className="stat-label">塔幣</div>
@@ -89,6 +90,15 @@ export const GameHUD: React.FC<Props> = ({ state, onExit }) => {
             <div className="stat-label">勇氣</div>
           </div>
         )}
+        <button
+          onClick={onShowHelp}
+          style={{
+            background: 'none', border: `1px solid ${COLORS.muted}`, color: COLORS.muted,
+            borderRadius: '50%', width: '24px', height: '24px', fontSize: '0.8rem',
+            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0, alignSelf: 'center',
+          }}
+        >？</button>
       </div>
 
       {/* Line 4: Buffs/Debuffs */}

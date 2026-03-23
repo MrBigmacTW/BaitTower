@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { EventLogEntry } from '../types/game';
 import { COLORS } from '../utils/constants';
-import { getEventIcon, getZone } from '../utils/gameLogic';
+import { getEventIcon } from '../utils/gameLogic';
 
 interface Props {
   eventLog: EventLogEntry[];

@@ -4,12 +4,14 @@ import {
   generateEvent, getEmptyRoomCoins, getTreasureCoins,
   getObstacleCost, getObstacleReward, getEventName, getCategoryIcon,
   getZone, getPortalCost, getCoinRainAmount, buildRouletteSegments,
-  getZoneFee, getZonesEntered, getMinGuarantee,
+  getZoneFee, getMinGuarantee,
+  buildSummitRouletteSegments, getPs5BonusWeight, setPs5BonusWeight,
+  pickSummitRouletteResult, calcSummitPrize,
 } from '../utils/gameLogic';
 import {
   ENTRY_FEE, SAFE_EXIT_BONUS, DEATH_KEEP_RATIO, MAX_FLOOR,
   COLORS, ZONE_NAMES, ZONE_DESCS, ZONE_WARNINGS, MERCHANT_ITEMS,
-  COURAGE_PER_FLOOR, ZONE_FEES,
+  COURAGE_PER_FLOOR,
 } from '../utils/constants';
 
 function loadNum(key: string, def: number): number {
@@ -51,6 +53,10 @@ function createInitialState(): GameState {
     rouletteSegments: [],
     rouletteResult: 0,
     rouletteSpinning: false,
+    summitRouletteSegments: [],
+    summitRouletteResult: 0,
+    summitRoulettePrize: null,
+    preDeathCoins: 0,
     previewEvents: [],
     previewFloorStart: 0,
     preGeneratedEvents: new Map(),
@@ -108,6 +114,20 @@ function getAnimationData(
       if (action === 'challenge') return { icon: '🧝‍♂️⚔️', text: '接受挑戰...' };
       if (action === 'pay_half') return { icon: '🧝‍♂️💰', text: '交出塔幣...' };
       return null;
+    case 'shadow_assassin':
+      if (result === 'died') return { icon: '🗡️💀', text: '影刺客刺出...' };
+      if (result === 'miraculous') return { icon: '✨🌟', text: '奇蹟逃脫！' };
+      return { icon: '🗡️💨', text: '閃避中...' };
+    case 'meteor_strike':
+      if (hadShield) return { icon: '🛡️💥', text: '護盾抵擋！' };
+      if (result === 'died') return { icon: '☄️💥', text: '流星墜落！' };
+      if (result === 'miraculous') return { icon: '✨🌟', text: '奇蹟逃脫！' };
+      return { icon: '☄️💨', text: '奔跑中...' };
+    case 'lava_burst':
+      if (hadShield) return { icon: '🛡️💥', text: '護盾抵擋！' };
+      if (result === 'died') return { icon: '🌋🔥', text: '熔岩噴發！' };
+      if (result === 'miraculous') return { icon: '✨🌟', text: '奇蹟逃脫！' };
+      return { icon: '🌋💨', text: '跳回中...' };
     case 'casino':
       if (action === 'skip') return null;
       return { icon: '🎰🎲', text: '投幣中...' };
@@ -183,14 +203,16 @@ export function useGameState() {
 
       // Check summit
       if (nextFloor >= MAX_FLOOR) {
-        const bf = Math.max(prev.historyBestFloor, MAX_FLOOR);
-        const tc = prev.historyTotalCoins + prev.dogTags;
-        const sc = prev.historySummitCount + 1;
-        persistHistory(tc, bf, prev.historyRunCount, sc);
+        const segs = buildSummitRouletteSegments();
+        const ps5Weight = getPs5BonusWeight();
+        const resultIdx = pickSummitRouletteResult(segs, ps5Weight);
         return {
           ...ns, currentFloor: MAX_FLOOR, hasCompleted: true,
-          phase: 'settlement' as const, settlementType: 'summit' as const,
-          currentEvent: null, historyTotalCoins: tc, historyBestFloor: bf, historySummitCount: sc,
+          phase: 'summit_roulette' as const,
+          summitRouletteSegments: segs,
+          summitRouletteResult: resultIdx,
+          summitRoulettePrize: null,
+          currentEvent: null,
         };
       }
 
@@ -245,6 +267,35 @@ export function useGameState() {
     });
   }, []);
 
+  /** Summit roulette complete → calculate prize, go to settlement */
+  const completeSummitRoulette = useCallback((resultIndex: number) => {
+    setState((prev) => {
+      const segs = prev.summitRouletteSegments;
+      const prize = calcSummitPrize(segs, resultIndex);
+      const bf = Math.max(prev.historyBestFloor, MAX_FLOOR);
+      const sc = prev.historySummitCount + 1;
+      let dogTags = prev.dogTags + prize.coins;
+      // PS5 won: reset bonus weight; else increment
+      if (prize.isPS5) {
+        setPs5BonusWeight(0);
+      } else {
+        setPs5BonusWeight(getPs5BonusWeight() + 2);
+      }
+      const tc = prev.historyTotalCoins + dogTags;
+      persistHistory(tc, bf, prev.historyRunCount, sc);
+      return {
+        ...prev,
+        dogTags,
+        summitRoulettePrize: prize,
+        phase: 'settlement' as const,
+        settlementType: 'summit' as const,
+        historyTotalCoins: tc,
+        historyBestFloor: bf,
+        historySummitCount: sc,
+      };
+    });
+  }, []);
+
   /** Roulette spin complete → show the event */
   const completeRoulette = useCallback(() => {
     setState((prev) => ({
@@ -277,10 +328,28 @@ export function useGameState() {
           break;
         }
         case 'treasure': {
-          const pts = safeZero ? 0 : Math.round(getTreasureCoins(prev.currentFloor) * richMul * poisonMul);
-          dtChange = pts;
-          rText = pts > 0 ? `開箱成功！獲得 ${pts} 塔幣！` : '寶箱是空的...（安全通道中）';
-          rColor = COLORS.gold;
+          if (safeZero) {
+            dtChange = 0;
+            rText = '寶箱是空的...（安全通道中）';
+            rColor = COLORS.muted;
+          } else {
+            const basePts = Math.round(getTreasureCoins(prev.currentFloor) * richMul * poisonMul);
+            const r = Math.random();
+            if (r < 0.20) {
+              dtChange = 0;
+              rText = '寶箱是空的！什麼都沒有...';
+              rColor = COLORS.muted;
+            } else if (r < 0.80) {
+              dtChange = basePts;
+              rText = `開箱成功！獲得 ${basePts} 塔幣！`;
+              rColor = COLORS.gold;
+            } else {
+              const crit = basePts * 2;
+              dtChange = crit;
+              rText = `寶箱暴擊！獲得 ${crit} 塔幣！`;
+              rColor = COLORS.gold;
+            }
+          }
           break;
         }
         case 'campfire': {
@@ -320,7 +389,53 @@ export function useGameState() {
         }
 
         // Obstacles
-        case 'monster': case 'broken_bridge': case 'locked_door': {
+        case 'monster': {
+          if (action === 'pay') {
+            const cost = getObstacleCost(prev.currentFloor, prev.hasCampfire, prev.isInjured, prev.steleCurseLayers, prev.courage);
+            costPaid = cost;
+            const rw = safeZero ? 0 : Math.round(getObstacleReward(prev.currentFloor) * richMul * poisonMul);
+            if (prev.hasCampfire) ns.hasCampfire = false;
+            result = 'paid';
+            const r = Math.random();
+            if (r < 0.15) {
+              dtChange = rw - cost;
+              ns.isInjured = true;
+              rText = `怪物反擊！受傷了！+${rw} 但受傷`;
+              rColor = COLORS.orange;
+            } else if (r < 0.85) {
+              dtChange = rw - cost;
+              rText = `擊退怪物！${rw > 0 ? `+${rw} 塔幣` : ''}`;
+              rColor = COLORS.positive;
+            } else {
+              const critRw = Math.round(rw * 1.5);
+              dtChange = critRw - cost;
+              rText = `完美擊退！+${critRw} 塔幣！`;
+              rColor = COLORS.gold;
+            }
+          } else { result = 'fled'; }
+          break;
+        }
+        case 'broken_bridge': {
+          if (action === 'pay') {
+            const cost = getObstacleCost(prev.currentFloor, prev.hasCampfire, prev.isInjured, prev.steleCurseLayers, prev.courage);
+            costPaid = cost;
+            const rw = safeZero ? 0 : Math.round(getObstacleReward(prev.currentFloor) * richMul * poisonMul);
+            if (prev.hasCampfire) ns.hasCampfire = false;
+            result = 'paid';
+            const r = Math.random();
+            if (r < 0.20) {
+              dtChange = -cost;
+              rText = '橋修了一半又斷了...只損失了工具費。';
+              rColor = COLORS.negative;
+            } else {
+              dtChange = rw - cost;
+              rText = `橋修好了！${rw > 0 ? `+${rw} 塔幣` : ''}`;
+              rColor = COLORS.positive;
+            }
+          } else { result = 'fled'; }
+          break;
+        }
+        case 'locked_door': {
           if (action === 'pay') {
             const cost = getObstacleCost(prev.currentFloor, prev.hasCampfire, prev.isInjured, prev.steleCurseLayers, prev.courage);
             costPaid = cost;
@@ -328,8 +443,7 @@ export function useGameState() {
             dtChange = rw - cost;
             if (prev.hasCampfire) ns.hasCampfire = false;
             result = 'paid';
-            const an = event.type === 'monster' ? '擊退了怪物' : event.type === 'broken_bridge' ? '修復了橋樑' : '打開了門';
-            rText = `${an}！${rw > 0 ? `+${rw} 塔幣` : ''}`;
+            rText = `打開了門！${rw > 0 ? `+${rw} 塔幣` : ''}`;
           } else { result = 'fled'; }
           break;
         }
@@ -357,25 +471,31 @@ export function useGameState() {
           if (prev.hasShield) {
             ns.hasShield = false; result = 'survived';
             rText = '護盾碎裂！但你安然無恙！'; rColor = COLORS.positive;
-          } else if (action === 'dodge') {
-            const surviveRate = 0.6 + (prev.hasLucky ? 0.2 : 0);
-            if (prev.hasLucky) ns.hasLucky = false;
-            if (Math.random() < surviveRate) {
-              ns.isInjured = true; result = 'survived';
-              rText = '閃避成功！但你受了傷...'; rColor = COLORS.orange;
+          } else if (action === 'dodge' || action === 'confront') {
+            // Miraculous escape 5%
+            if (Math.random() < 0.05) {
+              result = 'survived';
+              rText = '奇蹟！你毫髮無傷地閃過了龍的攻擊！'; rColor = COLORS.gold;
+            } else if (action === 'dodge') {
+              const surviveRate = 0.6 + (prev.hasLucky ? 0.2 : 0);
+              if (prev.hasLucky) ns.hasLucky = false;
+              if (Math.random() < surviveRate) {
+                ns.isInjured = true; result = 'survived';
+                rText = '閃避成功！但你受了傷...'; rColor = COLORS.orange;
+              } else {
+                ns.isAlive = false; result = 'died';
+                rText = '閃避失敗...你倒下了。'; rColor = COLORS.negative;
+              }
             } else {
-              ns.isAlive = false; result = 'died';
-              rText = '閃避失敗...你倒下了。'; rColor = COLORS.negative;
-            }
-          } else if (action === 'confront') {
-            const surviveRate = 0.3 + (prev.hasLucky ? 0.2 : 0);
-            if (prev.hasLucky) ns.hasLucky = false;
-            if (Math.random() < surviveRate) {
-              ns.hasShield = true; result = 'survived';
-              rText = '對峙成功！獲得龍鱗護盾！'; rColor = COLORS.gold;
-            } else {
-              ns.isAlive = false; result = 'died';
-              rText = '對峙失敗...你倒下了。'; rColor = COLORS.negative;
+              const surviveRate = 0.3 + (prev.hasLucky ? 0.2 : 0);
+              if (prev.hasLucky) ns.hasLucky = false;
+              if (Math.random() < surviveRate) {
+                ns.hasShield = true; result = 'survived';
+                rText = '對峙成功！獲得龍鱗護盾！'; rColor = COLORS.gold;
+              } else {
+                ns.isAlive = false; result = 'died';
+                rText = '對峙失敗...你倒下了。'; rColor = COLORS.negative;
+              }
             }
           }
           break;
@@ -385,21 +505,33 @@ export function useGameState() {
             ns.hasShield = false; result = 'survived';
             rText = '護盾碎裂！但你安然無恙！'; rColor = COLORS.positive;
           } else {
-            const surviveRate = 0.7 + (prev.hasLucky ? 0.2 : 0);
-            if (prev.hasLucky) ns.hasLucky = false;
-            if (Math.random() < surviveRate) {
-              ns.isInjured = true; result = 'survived';
-              rText = '你抓住了邊緣！但受了傷...'; rColor = COLORS.orange;
+            // Miraculous escape 5%
+            if (Math.random() < 0.05) {
+              result = 'survived';
+              rText = '奇蹟！地板崩塌但你踩到了隱藏梯子！'; rColor = COLORS.gold;
             } else {
-              ns.isAlive = false; result = 'died';
-              rText = '你墜入了深淵...'; rColor = COLORS.negative;
+              const surviveRate = 0.7 + (prev.hasLucky ? 0.2 : 0);
+              if (prev.hasLucky) ns.hasLucky = false;
+              if (Math.random() < surviveRate) {
+                ns.isInjured = true; result = 'survived';
+                rText = '你抓住了邊緣！但受了傷...'; rColor = COLORS.orange;
+              } else {
+                ns.isAlive = false; result = 'died';
+                rText = '你墜入了深淵...'; rColor = COLORS.negative;
+              }
             }
           }
           break;
         }
         case 'curse_fog': {
-          ns.cursed = true; result = 'survived';
-          rText = '詛咒降臨...每層 -10% 塔幣，營火可解除。'; rColor = COLORS.purple;
+          // 5% resist
+          if (Math.random() < 0.05) {
+            result = 'survived';
+            rText = '免疫！詛咒迷霧對你無效！'; rColor = COLORS.gold;
+          } else {
+            ns.cursed = true; result = 'survived';
+            rText = '詛咒降臨...每層 -10% 塔幣，營火可解除。'; rColor = COLORS.purple;
+          }
           break;
         }
         case 'chest_mimic': {
@@ -527,10 +659,84 @@ export function useGameState() {
           } else { rText = '不買任何東西，繼續前進。'; rColor = COLORS.muted; result = 'skipped'; }
           break;
         }
+        case 'shadow_assassin': {
+          if (action === 'dodge') {
+            // Miraculous escape 5%
+            if (Math.random() < 0.05) {
+              result = 'survived';
+              rText = '奇蹟！你毫髮無傷地閃過了影刺客！'; rColor = COLORS.gold;
+            } else {
+              const r = Math.random();
+              if (r < 0.60) {
+                ns.isInjured = true; result = 'survived';
+                rText = '閃避成功！但受了傷...'; rColor = COLORS.orange;
+              } else {
+                ns.isAlive = false; result = 'died';
+                rText = '影刺客刺中了你...'; rColor = COLORS.negative;
+              }
+            }
+          } else if (action === 'throw_coins') {
+            const loss = Math.round(prev.dogTags * 0.4);
+            dtChange = -loss;
+            result = 'survived';
+            rText = `扔出塔幣！影刺客滿意離去。失去 ${loss} 塔幣。`; rColor = COLORS.orange;
+          }
+          break;
+        }
+        case 'meteor_strike': {
+          if (prev.hasShield) {
+            ns.hasShield = false; result = 'survived';
+            rText = '護盾碎裂！流星偏轉！'; rColor = COLORS.positive;
+          } else if (action === 'run') {
+            // Miraculous escape 5%
+            if (Math.random() < 0.05) {
+              result = 'survived';
+              rText = '奇蹟！流星在你腳邊炸開！毫髮無傷！'; rColor = COLORS.gold;
+            } else {
+              const r = Math.random();
+              if (r < 0.50) {
+                ns.isInjured = true; result = 'survived';
+                rText = '奔跑逃過！但衝擊波讓你受傷...'; rColor = COLORS.orange;
+              } else {
+                ns.isAlive = false; result = 'died';
+                rText = '流星直接命中...'; rColor = COLORS.negative;
+              }
+            }
+          }
+          break;
+        }
+        case 'lava_burst': {
+          if (prev.hasShield) {
+            ns.hasShield = false; result = 'survived';
+            rText = '護盾碎裂！熔岩被擋住了！'; rColor = COLORS.positive;
+          } else if (action === 'jump') {
+            // Miraculous escape 5%
+            if (Math.random() < 0.05) {
+              result = 'survived';
+              rText = '奇蹟！你恰好跳過了所有熔岩縫隙！'; rColor = COLORS.gold;
+            } else {
+              const r = Math.random();
+              if (r < 0.70) {
+                ns.isInjured = true; result = 'survived';
+                rText = '跳開了！但被熔岩灼傷了...'; rColor = COLORS.orange;
+              } else {
+                ns.isAlive = false; result = 'died';
+                rText = '熔岩吞噬了你...'; rColor = COLORS.negative;
+              }
+            }
+          }
+          break;
+        }
         case 'poison_swamp': {
-          ns.poisonLayers = 5;
-          rText = '你中毒了！接下來 5 層塔幣獎勵減半。營火或解毒劑可治癒。'; rColor = COLORS.negative;
-          result = 'survived';
+          // 5% resist
+          if (Math.random() < 0.05) {
+            result = 'survived';
+            rText = '免疫！毒沼對你無效！'; rColor = COLORS.gold;
+          } else {
+            ns.poisonLayers = 5;
+            rText = '你中毒了！接下來 5 層塔幣獎勵減半。營火或解毒劑可治癒。'; rColor = COLORS.negative;
+            result = 'survived';
+          }
           break;
         }
         case 'curse_stele': {
@@ -574,7 +780,13 @@ export function useGameState() {
           const nf = prev.currentFloor + jump;
           if (nf >= MAX_FLOOR) {
             ns.currentFloor = MAX_FLOOR; ns.hasCompleted = true;
-            ns.phase = 'settlement'; ns.settlementType = 'summit';
+            const segs = buildSummitRouletteSegments();
+            const ps5Weight = getPs5BonusWeight();
+            const ridx = pickSummitRouletteResult(segs, ps5Weight);
+            ns.summitRouletteSegments = segs;
+            ns.summitRouletteResult = ridx;
+            ns.summitRoulettePrize = null;
+            ns.phase = 'summit_roulette';
             rText = '傳送門直達塔頂！'; rColor = COLORS.gold;
           } else {
             ns.currentFloor = nf;
@@ -612,6 +824,7 @@ export function useGameState() {
 
       // Death
       if (!ns.isAlive) {
+        ns.preDeathCoins = ns.dogTags;
         const minGuarantee = getMinGuarantee(prev.currentFloor);
         const kept = Math.max(Math.floor(ns.dogTags * DEATH_KEEP_RATIO), minGuarantee);
         ns.dogTags = kept;
@@ -627,13 +840,8 @@ export function useGameState() {
           ns.phase = 'settlement';
         }
       } else if (ns.hasCompleted) {
-        const tc = prev.historyTotalCoins + ns.dogTags;
-        const sc = prev.historySummitCount + 1;
-        persistHistory(tc, MAX_FLOOR, prev.historyRunCount, sc);
-        ns.historyTotalCoins = tc; ns.historySummitCount = sc; ns.historyBestFloor = MAX_FLOOR;
+        // Phase is already set to summit_roulette (from portal case above)
         ns.resultText = rText; ns.resultColor = rColor;
-        // Portal summit doesn't animate
-        ns.phase = 'settlement'; ns.settlementType = 'summit';
       } else {
         ns.currentEvent = null;
         ns.resultText = rText; ns.resultColor = rColor;
@@ -731,7 +939,7 @@ export function useGameState() {
     completeTutorial, resetTutorial,
     forceFloor, forceDeath, forceSummit, forceEvent,
     continueAfterZoneTransition, completeRoulette, goHome,
-    completeAnimation, payZoneFee, declineZoneFee,
+    completeAnimation, payZoneFee, declineZoneFee, completeSummitRoulette,
   };
 }
 

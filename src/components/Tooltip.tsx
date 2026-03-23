@@ -18,6 +18,8 @@ export const Tooltip: React.FC<Props> = ({ message, show, onDone }) => {
         setTimeout(onDone, 300);
       }, 4000);
       return () => clearTimeout(timer);
+    } else {
+      setVisible(false);
     }
   }, [show, onDone]);
 

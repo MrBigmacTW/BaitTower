@@ -38,7 +38,7 @@ export interface GameState {
   // Event state
   eventLog: EventLogEntry[];
   currentEvent: GameEvent | null;
-  phase: 'idle' | 'roulette' | 'event' | 'animating' | 'result' | 'settlement' | 'zone_transition' | 'zone_gate';
+  phase: 'idle' | 'roulette' | 'event' | 'animating' | 'result' | 'settlement' | 'zone_transition' | 'zone_gate' | 'summit_roulette';
   animationIcon: string;
   animationText: string;
   settlementType: 'exit' | 'death' | 'summit' | null;
@@ -49,6 +49,14 @@ export interface GameState {
   rouletteSegments: string[]; // 12 category icons
   rouletteResult: number; // index of winning segment
   rouletteSpinning: boolean;
+
+  // Summit roulette
+  summitRouletteSegments: string[];
+  summitRouletteResult: number;
+  summitRoulettePrize: { coins: number; isPS5: boolean } | null;
+
+  // Death fix
+  preDeathCoins: number;
 
   // Telescope
   previewEvents: string[];

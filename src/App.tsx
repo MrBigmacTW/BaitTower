@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Welcome } from './components/Welcome';
 import { RulesCarousel } from './components/RulesCarousel';
 import { TutorialTower } from './components/TutorialTower';
@@ -13,7 +13,7 @@ import { RulesPage } from './components/RulesPage';
 import { RouletteWheel } from './components/RouletteWheel';
 import { useGameState } from './hooks/useGameState';
 import { COLORS, ENTRY_FEE, MAX_FLOOR, ZONE_COLORS, ZONE_FEES } from './utils/constants';
-import { getCoinHint, getZoneFee, getMinGuarantee, getZonesEntered } from './utils/gameLogic';
+import { getCoinHint, getMinGuarantee, getZone } from './utils/gameLogic';
 import type { TutorialStep } from './types/game';
 
 function App() {
@@ -22,7 +22,7 @@ function App() {
     completeTutorial, resetTutorial,
     forceFloor, forceDeath, forceSummit, forceEvent,
     continueAfterZoneTransition, completeRoulette, goHome,
-    completeAnimation, payZoneFee, declineZoneFee,
+    completeAnimation, payZoneFee, declineZoneFee, completeSummitRoulette,
   } = useGameState();
 
   const [tutorialStep, setTutorialStep] = useState<TutorialStep>(
@@ -34,6 +34,7 @@ function App() {
   const [showRules, setShowRules] = useState(false);
   const [showRetreatConfirm, setShowRetreatConfirm] = useState(false);
   const [showRestartConfirm, setShowRestartConfirm] = useState(false);
+  const [showHudHelp, setShowHudHelp] = useState(false);
   const { currentHint, showHint, dismissHint } = useHints();
 
   // Keyboard shortcuts
@@ -211,7 +212,6 @@ function App() {
       : state.zoneTransitionName === '龍域' ? 'dragon' : 'sky';
     const zoneColor = ZONE_COLORS[zoneKey] || COLORS.gold;
     const fee = ZONE_FEES[zoneKey] || 69;
-    const zonesEntered = getZonesEntered(state.currentFloor);
     const minGuarantee = getMinGuarantee(state.currentFloor);
     const prevBonus = Math.floor(state.dogTags * 0.15);
 
@@ -357,7 +357,8 @@ function App() {
         </div>
         <div style={{ color: COLORS.text, marginBottom: '4px' }}>🪙 在商城兌換實體獎品（公仔、周邊、扭蛋）</div>
         <div style={{ color: COLORS.text, marginBottom: '4px' }}>🪙 在塔中向商人購買道具（護盾、透視鏡等）</div>
-        <div style={{ color: COLORS.text }}>🪙 參加塔幣限定活動</div>
+        <div style={{ color: COLORS.text, marginBottom: '4px' }}>🪙 參加塔幣限定活動</div>
+        <div style={{ color: COLORS.gold, marginBottom: '4px' }}>🎮 登頂抽大獎！PS5 機率隨登頂次數提升</div>
       </div>
 
       <p style={{ color: COLORS.muted, marginBottom: '1.5rem', fontSize: '0.9rem' }}>入場費：{ENTRY_FEE} 元</p>
@@ -377,18 +378,65 @@ function App() {
   // Main game
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: COLORS.bg }}>
-      <GameHUD state={state} onExit={handleExitWithConfirm} />
+      <GameHUD state={state} onExit={handleExitWithConfirm} onShowHelp={() => setShowHudHelp(true)} />
+      {showHudHelp && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 200,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem',
+        }} onClick={() => setShowHudHelp(false)}>
+          <div className="glass-card" style={{
+            maxWidth: '360px', width: '100%', padding: '1.5rem', borderRadius: '16px',
+            maxHeight: '80vh', overflowY: 'auto',
+          }} onClick={e => e.stopPropagation()}>
+            <h2 style={{ color: COLORS.gold, textAlign: 'center', marginBottom: '1rem' }}>📊 狀態說明</h2>
+            <div style={{ color: COLORS.text, lineHeight: 1.7, fontSize: '0.85rem' }}>
+              <p><span style={{ color: COLORS.gold }}>🪙 塔幣</span> — 在塔內累積的虛擬貨幣。主動離塔或死亡後可帶走部分。死亡只保留 20%，主動離塔保留 100% + 15% 獎勵。</p>
+              <p style={{ marginTop: '0.7rem' }}><span style={{ color: COLORS.orange }}>💰 本次投入</span> — 這次冒險花費的真實金額（台幣）。包含入場費和區域通行費。</p>
+              <p style={{ marginTop: '0.7rem' }}><span style={{ color: COLORS.purple }}>⚔️ 勇氣</span> — 每過一層 +1。每累積 5 點可讓障礙費用折扣 5%，最高 80% 折扣。</p>
+              <hr style={{ border: 'none', borderTop: `1px solid ${COLORS.secondary}`, margin: '0.8rem 0' }} />
+              <p style={{ color: COLORS.text, fontWeight: 'bold', marginBottom: '0.4rem' }}>狀態效果：</p>
+              <p><span style={{ color: COLORS.positive }}>🛡️ 護盾</span> — 一次免疫致命事件</p>
+              <p><span style={{ color: COLORS.orange }}>🔥 營火效果</span> — 下次障礙費用半價</p>
+              <p><span style={{ color: COLORS.negative }}>🩸 受傷</span> — 障礙費用 ×1.5，營火治癒</p>
+              <p><span style={{ color: COLORS.purple }}>💀 詛咒</span> — 每層 -10% 塔幣，營火解除</p>
+              <p><span style={{ color: '#22c55e' }}>🧪 中毒</span> — 獎勵減半 X 層</p>
+              <p><span style={{ color: COLORS.orange }}>🪨 石碑詛咒</span> — 障礙費用 ×2 持續 3 層</p>
+            </div>
+            <button className="btn-secondary" style={{ marginTop: '1.2rem', width: '100%' }} onClick={() => setShowHudHelp(false)}>
+              關閉
+            </button>
+          </div>
+        </div>
+      )}
       <Tooltip message={currentHint || ''} show={!!currentHint} onDone={dismissHint} />
 
       <div style={{
         flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1rem',
       }}>
-        {state.phase === 'roulette' ? (
+        {state.phase === 'summit_roulette' ? (
+          <div style={{ textAlign: 'center' }}>
+            <h2 style={{ color: COLORS.gold, fontSize: '1.5rem', marginBottom: '0.5rem' }}>登頂大獎輪盤！</h2>
+            <p style={{ color: COLORS.muted, fontSize: '0.85rem', marginBottom: '1rem' }}>
+              PS5 機率隨登頂次數提升
+            </p>
+            <RouletteWheel
+              segments={state.summitRouletteSegments}
+              resultIndex={state.summitRouletteResult}
+              onComplete={() => completeSummitRoulette(state.summitRouletteResult)}
+              zone="sky"
+            />
+            <button className="btn-secondary" style={{ marginTop: '1rem', opacity: 0.7, fontSize: '0.85rem' }}
+              onClick={() => completeSummitRoulette(state.summitRouletteResult)}>
+              ⏩ 跳過轉盤
+            </button>
+          </div>
+        ) : state.phase === 'roulette' ? (
           <>
             <RouletteWheel
               segments={state.rouletteSegments}
               resultIndex={state.rouletteResult}
               onComplete={completeRoulette}
+              zone={getZone(state.currentFloor)}
             />
             <button className="btn-secondary" style={{ marginTop: '1rem', opacity: 0.7, fontSize: '0.85rem' }} onClick={completeRoulette}>
               ⏩ 跳過轉盤

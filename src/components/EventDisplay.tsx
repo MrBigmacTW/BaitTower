@@ -45,7 +45,14 @@ export const EventDisplay: React.FC<Props> = ({ event, state, onResolve, onExit 
       case 'empty_room':
         return <button className="btn-primary" onClick={() => onResolve('pass')}>通過</button>;
       case 'treasure':
-        return <button className="btn-primary" onClick={() => onResolve('pass')}>開箱</button>;
+        return (
+          <>
+            <button className="btn-primary" onClick={() => onResolve('pass')}>開箱 🎲（結果隨機）</button>
+            <p style={{ color: COLORS.muted, fontSize: '0.75rem', margin: '2px 0' }}>
+              20% 空箱 / 60% 正常 / 20% 暴擊 ×2
+            </p>
+          </>
+        );
       case 'campfire':
         return <button className="btn-primary" onClick={() => onResolve('pass')}>休息</button>;
       case 'traveler':
@@ -254,6 +261,38 @@ export const EventDisplay: React.FC<Props> = ({ event, state, onResolve, onExit 
           </>
         );
 
+      case 'shadow_assassin':
+        return (
+          <>
+            <button className="btn-primary" onClick={() => onResolve('dodge')}>
+              閃避（60% 存活，受傷）
+            </button>
+            <button className="btn-primary" style={{ background: '#7c3aed' }} onClick={() => onResolve('throw_coins')}>
+              扔出塔幣（失去 40% 塔幣，安全）（{Math.round(state.dogTags * 0.4)} 🪙）
+            </button>
+          </>
+        );
+
+      case 'meteor_strike':
+        if (state.hasShield) {
+          return <button className="btn-primary" onClick={() => onResolve('run')}>護盾抵擋！</button>;
+        }
+        return (
+          <button className="btn-primary" onClick={() => onResolve('run')}>
+            奔跑閃避（50% 存活）
+          </button>
+        );
+
+      case 'lava_burst':
+        if (state.hasShield) {
+          return <button className="btn-primary" onClick={() => onResolve('jump')}>護盾抵擋！</button>;
+        }
+        return (
+          <button className="btn-primary" onClick={() => onResolve('jump')}>
+            跳回（70% 存活，受傷）
+          </button>
+        );
+
       case 'angel':
         return <button className="btn-primary" onClick={() => onResolve('pass')}>接受祝福</button>;
       case 'coin_rain':
@@ -296,7 +335,14 @@ export const EventDisplay: React.FC<Props> = ({ event, state, onResolve, onExit 
       case 'empty_room':
         return null;
       case 'treasure':
-        return null;
+        return (
+          <div className="outcome-panel">
+            <div style={labelStyle}>📋 開箱結果</div>
+            <div>😔 <span style={{ color: badC }}>空箱</span>（20%）</div>
+            <div>✅ <span style={{ color: goodC }}>正常獎勵</span>（60%）</div>
+            <div>💎 <span style={{ color: goldC }}>暴擊 ×2</span>（20%）</div>
+          </div>
+        );
       case 'campfire':
         return null;
       case 'traveler':
@@ -315,7 +361,26 @@ export const EventDisplay: React.FC<Props> = ({ event, state, onResolve, onExit 
           </div>
         );
 
-      case 'monster': case 'broken_bridge': case 'locked_door':
+      case 'monster':
+        return (
+          <div className="outcome-panel">
+            <div style={labelStyle}>📋 付費突破結果</div>
+            <div>🩸 <span style={{ color: neutralC }}>怪物反擊，受傷</span>（15%）→ <span style={{ color: goodC }}>+{getObstacleReward(state.currentFloor)} 塔幣</span></div>
+            <div>✅ <span style={{ color: goodC }}>正常擊退</span>（70%）→ <span style={{ color: goodC }}>+{getObstacleReward(state.currentFloor)} 塔幣</span></div>
+            <div>💎 <span style={{ color: goldC }}>完美擊退</span>（15%）→ <span style={{ color: goldC }}>+{Math.round(getObstacleReward(state.currentFloor) * 1.5)} 塔幣</span></div>
+            <div>🏠 <span style={{ color: COLORS.muted }}>撤退離塔</span> → 保留所有塔幣 +15% 獎勵</div>
+          </div>
+        );
+      case 'broken_bridge':
+        return (
+          <div className="outcome-panel">
+            <div style={labelStyle}>📋 修橋結果</div>
+            <div>😔 <span style={{ color: badC }}>橋修到一半又斷了</span>（20%）→ 損失工具費</div>
+            <div>✅ <span style={{ color: goodC }}>修橋成功</span>（80%）→ <span style={{ color: goodC }}>+{getObstacleReward(state.currentFloor)} 塔幣</span></div>
+            <div>🏠 <span style={{ color: COLORS.muted }}>撤退離塔</span> → 保留所有塔幣 +15% 獎勵</div>
+          </div>
+        );
+      case 'locked_door':
         return (
           <div className="outcome-panel">
             <div style={labelStyle}>📋 可能結果</div>
@@ -352,6 +417,7 @@ export const EventDisplay: React.FC<Props> = ({ event, state, onResolve, onExit 
             <div style={{ ...labelStyle, marginTop: '6px' }}>📋 對峙結果</div>
             <div>✅ <span style={{ color: goldC }}>存活＋獲得護盾</span>（{confrontRate}%）</div>
             <div>💀 <span style={{ color: badC }}>死亡 → 僅保留 20% 塔幣</span>（{100 - confrontRate}%）</div>
+            <div style={{ color: goldC, fontSize: '0.7rem', marginTop: '4px' }}>✨ 5% 奇蹟逃脫機率</div>
           </div>
         );
       }
@@ -370,6 +436,7 @@ export const EventDisplay: React.FC<Props> = ({ event, state, onResolve, onExit 
             <div style={labelStyle}>📋 可能結果</div>
             <div>✅ <span style={{ color: neutralC }}>抓住邊緣，存活但受傷</span>（{survRate}%）</div>
             <div>💀 <span style={{ color: badC }}>墜入深淵 → 僅保留 20% 塔幣</span>（{100 - survRate}%）</div>
+            <div style={{ color: goldC, fontSize: '0.7rem', marginTop: '4px' }}>✨ 5% 奇蹟逃脫機率</div>
           </div>
         );
       }
@@ -439,6 +506,54 @@ export const EventDisplay: React.FC<Props> = ({ event, state, onResolve, onExit 
             <div>⚠️ <span style={{ color: badC }}>下層致命機率 +15%</span></div>
           </div>
         );
+
+      case 'shadow_assassin':
+        return (
+          <div className="outcome-panel">
+            <div style={labelStyle}>📋 閃避結果</div>
+            <div>✅ <span style={{ color: neutralC }}>存活但受傷</span>（60%）</div>
+            <div>💀 <span style={{ color: badC }}>死亡</span>（40%）</div>
+            <div style={{ ...labelStyle, marginTop: '6px' }}>📋 扔出塔幣</div>
+            <div>✅ <span style={{ color: neutralC }}>失去 40% 塔幣，安全通過</span>（100%）</div>
+            <div style={{ color: goldC, fontSize: '0.7rem', marginTop: '4px' }}>✨ 5% 奇蹟逃脫機率</div>
+          </div>
+        );
+      case 'meteor_strike': {
+        if (state.hasShield) {
+          return (
+            <div className="outcome-panel">
+              <div style={labelStyle}>📋 可能結果</div>
+              <div>🛡️ <span style={{ color: goodC }}>護盾擋住流星</span>（100%，護盾碎裂）</div>
+            </div>
+          );
+        }
+        return (
+          <div className="outcome-panel">
+            <div style={labelStyle}>📋 奔跑結果</div>
+            <div>✅ <span style={{ color: neutralC }}>存活但受傷</span>（50%）</div>
+            <div>💀 <span style={{ color: badC }}>死亡</span>（50%）</div>
+            <div style={{ color: goldC, fontSize: '0.7rem', marginTop: '4px' }}>✨ 5% 奇蹟逃脫機率</div>
+          </div>
+        );
+      }
+      case 'lava_burst': {
+        if (state.hasShield) {
+          return (
+            <div className="outcome-panel">
+              <div style={labelStyle}>📋 可能結果</div>
+              <div>🛡️ <span style={{ color: goodC }}>護盾擋住熔岩</span>（100%，護盾碎裂）</div>
+            </div>
+          );
+        }
+        return (
+          <div className="outcome-panel">
+            <div style={labelStyle}>📋 跳回結果</div>
+            <div>✅ <span style={{ color: neutralC }}>存活但受傷</span>（70%）</div>
+            <div>💀 <span style={{ color: badC }}>死亡</span>（30%）</div>
+            <div style={{ color: goldC, fontSize: '0.7rem', marginTop: '4px' }}>✨ 5% 奇蹟逃脫機率</div>
+          </div>
+        );
+      }
 
       case 'angel':
         return null;

@@ -117,12 +117,18 @@ function pickObstacleEvent(): string {
 
 function pickDeadlyEvent(pk: string, floor: number): string {
   const subProbs = DEADLY_SUB_PROBS[pk] || DEADLY_SUB_PROBS.grass;
-  const types = ['dragon_attack', 'floor_collapse', 'curse_fog', 'chest_mimic', 'dark_elf'];
+  const types = ['dragon_attack', 'floor_collapse', 'curse_fog', 'chest_mimic', 'dark_elf', 'shadow_assassin', 'meteor_strike', 'lava_burst'];
   let idx = pickWeighted(subProbs);
   // dark_elf only 21F+
   if (types[idx] === 'dark_elf' && floor < 21) idx = 0;
   // chest_mimic only 11F+
   if (types[idx] === 'chest_mimic' && floor < 11) idx = 0;
+  // shadow_assassin only 11F+
+  if (types[idx] === 'shadow_assassin' && floor < 11) idx = 0;
+  // meteor_strike only 41F+
+  if (types[idx] === 'meteor_strike' && floor < 41) idx = 0;
+  // lava_burst only 21F+
+  if (types[idx] === 'lava_burst' && floor < 21) idx = 0;
   return types[idx];
 }
 
@@ -161,6 +167,7 @@ export function getEventName(type: string): string {
     monster: '怪物攔路', broken_bridge: '斷橋', locked_door: '上鎖門', locked_chest: '上鎖寶箱',
     dragon_attack: '巨龍現身', floor_collapse: '地板崩塌', curse_fog: '詛咒迷霧',
     chest_mimic: '寶箱怪', dark_elf: '黑暗精靈',
+    shadow_assassin: '影刺客', meteor_strike: '流星墜落', lava_burst: '熔岩噴發',
     merchant: '神秘商人', crossroads: '岔路口', casino: '賭場', altar: '祭壇',
     twd_merchant: '道具商人', poison_swamp: '毒沼', curse_stele: '詛咒石碑',
     angel: '天使祝福', portal: '時空傳送門', coin_rain: '金幣雨',
@@ -185,6 +192,9 @@ function getEventDescription(type: string): string {
     curse_fog: '紫色迷霧籠罩了你...',
     chest_mimic: '這個寶箱...怎麼在動？',
     dark_elf: '黑暗精靈：「獻上你的財富，或賭上性命。」',
+    shadow_assassin: '影子從牆壁中跳出！',
+    meteor_strike: '天空中一顆流星直直朝你落下！',
+    lava_burst: '地面裂縫中湧出滾燙熔岩！',
     merchant: '一位神秘商人出現了。',
     crossroads: '前方出現了岔路。',
     casino: '你發現了一個隱藏的賭場。',
@@ -294,6 +304,47 @@ export function buildRouletteSegments(floor: number, safePass: number, richPass:
   return segments;
 }
 
+/** Build 13-slot summit roulette segments (weighted PS5 based on ps5BonusWeight) */
+export function buildSummitRouletteSegments(): string[] {
+  return ['🎁','🎁','🎁','🎁', '📦','📦','📦', '🎀','🎀', '💰','💰', '🎮'];
+}
+
+/** Get PS5 bonus weight from localStorage */
+export function getPs5BonusWeight(): number {
+  try {
+    return Math.min(20, parseInt(localStorage.getItem('ps5BonusWeight') || '0', 10) || 0);
+  } catch { return 0; }
+}
+
+/** Set PS5 bonus weight in localStorage */
+export function setPs5BonusWeight(w: number): void {
+  try { localStorage.setItem('ps5BonusWeight', String(w)); } catch { /* ignore */ }
+}
+
+/** Pick a summit roulette result index (weighted PS5) */
+export function pickSummitRouletteResult(segments: string[], ps5Weight: number): number {
+  // Weights: each non-PS5 = 1, PS5 = 1 + ps5Weight
+  const weights = segments.map(s => s === '🎮' ? 1 + ps5Weight : 1);
+  const total = weights.reduce((a, b) => a + b, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < weights.length; i++) {
+    r -= weights[i];
+    if (r <= 0) return i;
+  }
+  return segments.length - 1;
+}
+
+/** Calculate summit prize from result index */
+export function calcSummitPrize(segments: string[], resultIndex: number): { coins: number; isPS5: boolean } {
+  const icon = segments[resultIndex];
+  if (icon === '🎮') return { coins: 0, isPS5: true };
+  if (icon === '🎁') return { coins: Math.floor(50 + Math.random() * 151), isPS5: false }; // 50-200
+  if (icon === '📦') return { coins: Math.floor(20 + Math.random() * 61), isPS5: false };  // 20-80
+  if (icon === '🎀') return { coins: Math.floor(5 + Math.random() * 16), isPS5: false };   // 5-20
+  if (icon === '💰') return { coins: Math.floor(100 + Math.random() * 401), isPS5: false }; // 100-500
+  return { coins: 0, isPS5: false };
+}
+
 export function getObstacleReward(floor: number): number {
   return FLOOR_OBSTACLE_REWARD[floor] || 4;
 }
@@ -305,6 +356,7 @@ export function getEventIcon(type: string): string {
     monster: '👹', broken_bridge: '🌉', locked_door: '🔒', locked_chest: '📦',
     dragon_attack: '🐉', floor_collapse: '💥', curse_fog: '🌫️',
     chest_mimic: '👾', dark_elf: '🧝‍♂️',
+    shadow_assassin: '🗡️', meteor_strike: '☄️', lava_burst: '🌋',
     merchant: '🛒', crossroads: '🔀', casino: '🎰', altar: '⛩️',
     twd_merchant: '🏪', poison_swamp: '🧪', curse_stele: '🪨',
     angel: '👼', portal: '🌀', coin_rain: '🌧️', boots_skip: '👟',

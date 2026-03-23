@@ -43,14 +43,14 @@ export const FREE_SUB_PROBS: Record<string, number[]> = {
   sky:     [0.20, 0.10, 0.35, 0.05, 0.30],
 };
 
-// Deadly sub-probs per zone: [dragon_attack, floor_collapse, curse_fog, chest_mimic, dark_elf]
+// Deadly sub-probs per zone: [dragon_attack, floor_collapse, curse_fog, chest_mimic, dark_elf, shadow_assassin, meteor_strike, lava_burst]
 export const DEADLY_SUB_PROBS: Record<string, number[]> = {
-  protect: [0.60, 0.25, 0.15, 0.00, 0.00],
-  grass:   [0.60, 0.25, 0.15, 0.00, 0.00],
-  mist:    [0.50, 0.25, 0.15, 0.10, 0.00],
-  lava:    [0.45, 0.20, 0.15, 0.15, 0.05],
-  dragon:  [0.40, 0.20, 0.10, 0.20, 0.10],
-  sky:     [0.35, 0.15, 0.10, 0.25, 0.15],
+  protect: [0.50, 0.30, 0.20, 0.00, 0.00, 0.00, 0.00, 0.00],
+  grass:   [0.50, 0.25, 0.15, 0.00, 0.00, 0.10, 0.00, 0.00],
+  mist:    [0.35, 0.20, 0.15, 0.10, 0.00, 0.20, 0.00, 0.00],
+  lava:    [0.30, 0.15, 0.10, 0.12, 0.05, 0.13, 0.00, 0.15],
+  dragon:  [0.25, 0.15, 0.08, 0.15, 0.10, 0.15, 0.00, 0.12],
+  sky:     [0.20, 0.10, 0.05, 0.18, 0.12, 0.00, 0.25, 0.10],
 };
 
 // Choice sub-probs per zone: [merchant, crossroads, casino, altar, twd_merchant, poison_swamp, curse_stele]
@@ -155,7 +155,7 @@ export const SHOP_ITEMS = [
 
 export const FREE_EVENT_TYPES = ['empty_room', 'treasure', 'campfire', 'traveler', 'goblin_steal'];
 export const OBSTACLE_EVENT_TYPES = ['monster', 'broken_bridge', 'locked_door', 'locked_chest'];
-export const DEADLY_EVENT_TYPES = ['dragon_attack', 'floor_collapse', 'curse_fog', 'chest_mimic', 'dark_elf'];
+export const DEADLY_EVENT_TYPES = ['dragon_attack', 'floor_collapse', 'curse_fog', 'chest_mimic', 'dark_elf', 'shadow_assassin', 'meteor_strike', 'lava_burst'];
 export const CHOICE_EVENT_TYPES = ['merchant', 'crossroads', 'casino', 'altar', 'twd_merchant', 'poison_swamp', 'curse_stele'];
 export const RARE_EVENT_TYPES = ['angel', 'portal', 'coin_rain'];
 
@@ -210,4 +210,13 @@ export const ROULETTE_CATEGORY_ICONS: Record<string, string> = {
   deadly: '💀',
   choice: '❓',
   rare: '⭐',
+};
+
+// Per-zone roulette wheel segment colors
+export const ZONE_ROULETTE_COLORS: Record<string, string[]> = {
+  grass:  ['#1a3a1a','#2a4a1a','#1a2a0a','#2a3a1a', '#3a4a1a','#1a3a0a','#0a2a1a','#2a4a0a', '#1a3a1a','#2a4a1a','#1a2a0a','#2a3a1a'],
+  mist:   ['#1a0a3e','#2a1a4e','#0a1a3e','#1a2a4e', '#2a0a3e','#1a1a4e','#0a2a3e','#2a1a3e', '#1a0a4e','#2a1a3e','#1a2a3e','#0a1a4e'],
+  lava:   ['#3e1a0a','#4e2a0a','#3e0a0a','#4e1a0a', '#3e2a0a','#5e1a0a','#4e0a0a','#3e1a1a', '#4e2a1a','#3e0a1a','#5e0a0a','#4e1a1a'],
+  dragon: ['#3e0a0a','#4e0a0a','#5e0a0a','#3e0a1a', '#4e0a1a','#5e0a1a','#3e1a0a','#4e1a0a', '#3e0a0a','#4e0a0a','#5e0a0a','#3e0a1a'],
+  sky:    ['#0a2a4e','#0a3a5e','#1a2a4e','#0a2a5e', '#1a3a4e','#0a1a4e','#1a2a5e','#0a3a4e', '#0a2a4e','#1a3a5e','#0a2a5e','#1a2a4e'],
 };
