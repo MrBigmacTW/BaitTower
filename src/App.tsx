@@ -323,7 +323,7 @@ function App() {
       minHeight: '100vh', background: COLORS.bg, padding: '2rem', textAlign: 'center',
     }}>
       <div className="icon-frame" style={{ width: 100, height: 100, fontSize: '3.5rem', marginBottom: '1rem' }}>🏰</div>
-      <h1 style={{ color: COLORS.gold, fontSize: '2rem', marginBottom: '1.5rem', letterSpacing: '4px', textShadow: '0 0 20px rgba(255,215,0,0.3)' }}>勇者登塔</h1>
+      <h1 style={{ color: COLORS.gold, fontSize: '2rem', marginBottom: '1.5rem', letterSpacing: '4px', textShadow: '0 0 20px rgba(255,215,0,0.3)' }}>愛餌登塔玩</h1>
 
       <div className="glass-card" style={{
         padding: '14px 20px',

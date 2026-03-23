@@ -34,7 +34,7 @@ export const Welcome: React.FC<Props> = ({ onStart }) => {
           textShadow: '0 0 20px rgba(255, 215, 0, 0.3)',
         }}
       >
-        勇者登塔
+        愛餌登塔玩
       </h1>
 
       <p
