@@ -11,9 +11,10 @@ import { Tooltip, useHints } from './components/Tooltip';
 import { Shop } from './components/Shop';
 import { RulesPage } from './components/RulesPage';
 import { RouletteWheel } from './components/RouletteWheel';
+import { SummitRoulette } from './components/SummitRoulette';
 import { useGameState } from './hooks/useGameState';
 import { COLORS, ENTRY_FEE, MAX_FLOOR, ZONE_COLORS, ZONE_FEES } from './utils/constants';
-import { getCoinHint, getMinGuarantee, getZone } from './utils/gameLogic';
+import { getCoinHint, getMinGuarantee, getZone, getPs5BonusWeight } from './utils/gameLogic';
 import type { TutorialStep } from './types/game';
 
 function App() {
@@ -414,22 +415,13 @@ function App() {
         flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1rem',
       }}>
         {state.phase === 'summit_roulette' ? (
-          <div style={{ textAlign: 'center' }}>
-            <h2 style={{ color: COLORS.gold, fontSize: '1.5rem', marginBottom: '0.5rem' }}>登頂大獎輪盤！</h2>
-            <p style={{ color: COLORS.muted, fontSize: '0.85rem', marginBottom: '1rem' }}>
-              PS5 機率隨登頂次數提升
-            </p>
-            <RouletteWheel
-              segments={state.summitRouletteSegments}
-              resultIndex={state.summitRouletteResult}
-              onComplete={() => completeSummitRoulette(state.summitRouletteResult)}
-              zone="sky"
-            />
-            <button className="btn-secondary" style={{ marginTop: '1rem', opacity: 0.7, fontSize: '0.85rem' }}
-              onClick={() => completeSummitRoulette(state.summitRouletteResult)}>
-              ⏩ 跳過轉盤
-            </button>
-          </div>
+          <SummitRoulette
+            segments={state.summitRouletteSegments}
+            resultIndex={state.summitRouletteResult}
+            prize={state.summitRoulettePrize}
+            ps5BonusWeight={getPs5BonusWeight()}
+            onComplete={() => completeSummitRoulette(state.summitRouletteResult)}
+          />
         ) : state.phase === 'roulette' ? (
           <>
             <RouletteWheel

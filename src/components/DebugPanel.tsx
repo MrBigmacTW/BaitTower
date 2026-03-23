@@ -15,7 +15,7 @@ interface Props {
 const ALL_EVENTS = [
   'empty_room', 'treasure', 'campfire', 'traveler', 'goblin_steal',
   'monster', 'broken_bridge', 'locked_door', 'locked_chest',
-  'dragon_attack', 'floor_collapse', 'curse_fog', 'chest_mimic', 'dark_elf',
+  'dragon_attack', 'floor_collapse', 'curse_fog', 'chest_mimic', 'dark_elf', 'shadow_assassin', 'meteor_strike', 'lava_burst',
   'merchant', 'crossroads', 'casino', 'altar', 'twd_merchant', 'poison_swamp', 'curse_stele',
   'angel', 'portal', 'coin_rain',
 ];

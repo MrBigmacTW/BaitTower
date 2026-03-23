@@ -51,6 +51,15 @@ export const GameHUD: React.FC<Props> = ({ state, onExit: _onExit, onShowHelp })
         <div style={{ color: ZONE_COLORS[zone] || COLORS.gold, fontSize: '0.9rem', fontWeight: 'bold' }}>
           {zoneName}
         </div>
+        <button
+          onClick={onShowHelp}
+          style={{
+            background: 'none', border: `1px solid ${COLORS.muted}`, color: COLORS.muted,
+            borderRadius: '50%', width: '24px', height: '24px', fontSize: '0.8rem',
+            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}
+        >？</button>
       </div>
 
       {/* Line 2: Progress bar */}
@@ -79,26 +88,22 @@ export const GameHUD: React.FC<Props> = ({ state, onExit: _onExit, onShowHelp })
           </span>
           <div className="stat-label">本次投入</div>
         </div>
-        {state.courage > 0 && (
-          <div style={{ textAlign: 'center' }}>
-            <span className="stat-value" style={{ color: COLORS.purple }}>
-              ⚔️ {state.courage}
-              {getCourageDiscount(state.courage) > 0 && (
-                <span style={{ fontSize: '0.75rem' }}>（-{Math.round(getCourageDiscount(state.courage) * 100)}%）</span>
-              )}
-            </span>
-            <div className="stat-label">勇氣</div>
+        <div style={{ textAlign: 'center' }}>
+          <span className="stat-value" style={{ color: COLORS.purple }}>
+            ⚔️ {state.courage}
+            {getCourageDiscount(state.courage) > 0 && (
+              <span style={{ fontSize: '0.75rem' }}>（-{Math.round(getCourageDiscount(state.courage) * 100)}%）</span>
+            )}
+          </span>
+          <div className="stat-label">
+            勇氣
+            {state.courage % 5 !== 0 && (
+              <span style={{ color: COLORS.muted, fontSize: '0.65rem', marginLeft: '4px' }}>
+                再{5 - (state.courage % 5)}步
+              </span>
+            )}
           </div>
-        )}
-        <button
-          onClick={onShowHelp}
-          style={{
-            background: 'none', border: `1px solid ${COLORS.muted}`, color: COLORS.muted,
-            borderRadius: '50%', width: '24px', height: '24px', fontSize: '0.8rem',
-            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0, alignSelf: 'center',
-          }}
-        >？</button>
+        </div>
       </div>
 
       {/* Line 4: Buffs/Debuffs */}
